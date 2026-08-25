@@ -59,3 +59,32 @@ export const getProjects = async ({
     depth: 1,
   })
 }
+
+export const FEATURED_PROJECTS_LIMIT = 5
+
+/**
+ * The highlighted projects shown on the home page, plus the total number of projects
+ * so the caller can decide whether to offer a "View all projects" link.
+ */
+export const getFeaturedProjects = async (
+  limit = FEATURED_PROJECTS_LIMIT,
+): Promise<{ projects: Project[]; totalProjects: number }> => {
+  try {
+    const payload = await getPayloadClient()
+
+    const [highlighted, all] = await Promise.all([
+      payload.find({
+        collection: 'projects',
+        where: { highlight: { equals: true } },
+        sort: '-createdAt',
+        limit,
+        depth: 1,
+      }),
+      payload.count({ collection: 'projects' }),
+    ])
+
+    return { projects: highlighted.docs, totalProjects: all.totalDocs }
+  } catch {
+    return { projects: [], totalProjects: 0 }
+  }
+}

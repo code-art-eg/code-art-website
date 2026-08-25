@@ -672,3 +672,50 @@ preserved extra params), and the grid (cards, detail links, thumbnail selection,
 optional links, empty state). The E2E spec seeds five projects, clicks through to a detail page,
 then paginates at `limit=2` across all three pages verifying URLs, card counts, the active page
 marker and both disabled end states.
+
+---
+
+## Task 13: Display Highlighted Projects on Home Page & Update Menu
+
+**Status:** Completed
+
+### Summary of changes
+
+- `src/lib/collections.ts`: `getFeaturedProjects(limit = 5)` runs the highlighted-projects query
+  and a `payload.count()` of all projects concurrently, returning `{ projects, totalProjects }`.
+  The count is what decides whether a "View all projects" link is needed — the requirement is
+  "more projects (highlighted or not) beyond what is displayed", so counting only highlighted
+  ones would have hidden the link on a site with 5 highlighted and 20 total projects.
+- `src/components/FeaturedProjects.tsx`: `#projects` section reusing `ProjectGrid`/`ProjectCard`
+  (thumbnail, title link, summary, skills, external and GitHub links), with the "View all
+  projects →" link shown only when `totalProjects > projects.length`.
+  - When nothing is highlighted but projects exist, the section still renders with an
+    explanatory empty state and the link to `/projects` — otherwise the new "Projects" menu item
+    would scroll to a section that isn't in the document.
+  - Renders nothing at all when there are no projects.
+- `src/lib/navigation.ts`: added `{ id: 'projects', label: 'Projects' }`, so the fixed menu is
+  now About / Experience / Projects. No change to `Nav` was needed — it is driven by that list.
+- `src/app/(frontend)/page.tsx`: fetches the featured projects alongside the bio and experience
+  in the existing `Promise.all` and renders the section.
+
+### Files modified / created
+
+- `src/components/FeaturedProjects.tsx` (created)
+- `src/lib/collections.ts`, `src/lib/navigation.ts`, `src/app/(frontend)/page.tsx` (modified)
+- `tests/int/featuredProjects.int.spec.tsx` (created)
+- `tests/e2e/featured-projects.e2e.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command            | Result                     |
+| ------------------ | ------------------ | -------------------------- |
+| Unit / integration | `bun run test:int` | 14 files, 121 tests passed |
+| E2E                | `bun run test:e2e` | 17 tests passed            |
+| Lint               | `bun run lint`     | 0 errors, 0 warnings       |
+
+Unit tests cover the rendered cards and their detail links, the `#projects` anchor, both
+branches of the "View all projects" link, the nothing-highlighted-but-projects-exist case, the
+no-projects-at-all case, and the menu item order. The E2E spec seeds six highlighted projects,
+asserts exactly five are featured, follows "View all projects" to `/projects`, clicks the
+Projects menu item and asserts the section scrolls into view and is marked active, and follows
+a featured card through to its detail page.

@@ -6,10 +6,21 @@ type NamedField = Exclude<Extract<Field, { name: string }>, UIField>
 const hasName = (field: Field): field is NamedField => 'name' in field && field.type !== 'ui'
 
 /**
+ * Expands presentational containers (`row`, `collapsible`) which group fields visually
+ * without introducing a data namespace, so their children read as top-level fields.
+ */
+export const flattenFields = (fields: Field[]): Field[] =>
+  fields.flatMap((field) =>
+    field.type === 'row' || field.type === 'collapsible' ? flattenFields(field.fields) : [field],
+  )
+
+/**
  * Finds a top-level field by name inside a collection/global field list.
  */
 export const findField = (fields: Field[], name: string): NamedField | undefined =>
-  fields.filter(hasName).find((field) => field.name === name)
+  flattenFields(fields)
+    .filter(hasName)
+    .find((field) => field.name === name)
 
 /**
  * Finds a field by name and asserts it exists, so tests read cleanly.

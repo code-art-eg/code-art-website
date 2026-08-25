@@ -345,3 +345,49 @@ Unit tests cover the `h1` name, subtitle, short phrase, both rendered rich text 
 omission of empty optional blocks, and the `#about` anchor. E2E seeds the bio global, asserts
 the hero and About me content render on `/`, checks the generated page title, and restores the
 previous global value afterwards.
+
+---
+
+## Task 7: Add Work Experience Collection
+
+**Status:** Completed
+
+### Summary of changes
+
+- Created `src/collections/WorkExperience.ts` (slug `work-experience`) with:
+  - `jobTitle`, `company` — required text.
+  - `companyUrl` — optional text, validated as an absolute `http(s)` URL when present.
+  - `location` — optional text.
+  - `startYear` (required) and `endYear` (optional) — `number` fields laid out side by side in a
+    `row`, both validated as whole years within 1950…currentYear + 10. An empty `endYear` is
+    explicitly allowed and documented as meaning "Present".
+  - `jobDescription` — required `richText` using the root Lexical editor.
+  - `access.read: () => true`, `admin.useAsTitle: 'jobTitle'`, useful `defaultColumns`, and
+    `defaultSort: '-startYear'` so the admin list and API default to newest-first.
+- Registered it in `src/payload.config.ts` under `collections`.
+- Ran `bun run generate:types`; `WorkExperience` and `WorkExperienceSelect` are now in
+  `src/payload-types.ts`.
+- Extended `tests/helpers/payloadFields.ts` with `flattenFields()`, which expands `row` and
+  `collapsible` containers. Those group fields visually without creating a data namespace, so
+  `startYear`/`endYear` would otherwise have been invisible to `getField`.
+
+### Files modified / created
+
+- `src/collections/WorkExperience.ts` (created)
+- `src/payload.config.ts` (modified)
+- `src/payload-types.ts` (regenerated)
+- `tests/helpers/payloadFields.ts` (added `flattenFields`)
+- `tests/int/workExperience.collection.int.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command             | Result                   |
+| ------------------ | ------------------- | ------------------------ |
+| Unit / integration | `bun run test:int`  | 6 files, 41 tests passed |
+| Types              | `bunx tsc --noEmit` | Clean                    |
+| Lint               | `bun run lint`      | 0 errors, 0 warnings     |
+
+The spec covers the slug, public read access, config registration, `useAsTitle`/`defaultSort`,
+every field's type and `required` flag, and both validators — valid years, fractional years,
+2/5-digit typos, empty `endYear` meaning "Present", and the URL rules. Rendering and its E2E
+coverage land in Task 8.

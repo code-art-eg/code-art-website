@@ -5,6 +5,10 @@ description: Use when working with Payload CMS projects (payload.config.ts, coll
 
 # Payload CMS Application Development
 
+> **Working in this repo?** This is the general Payload reference. For _this_ project's content
+> model, data-fetching helpers, testing setup and conventions, read
+> [`.claude/skills/code-art-website/SKILL.md`](../code-art-website/SKILL.md) first.
+
 Payload is a Next.js native CMS with TypeScript-first architecture, providing admin panel, database management, REST/GraphQL APIs, authentication, and file storage.
 
 ## Quick Reference

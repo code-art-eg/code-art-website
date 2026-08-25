@@ -917,3 +917,58 @@ case and the full menu order. The E2E spec seeds six posts and asserts only the 
 appear (the oldest is pushed off), follows "View all blog posts" to `/blog`, clicks the Blog
 menu item and asserts the section scrolls into view and is marked active, and follows a post
 link through to the post page.
+
+---
+
+## Task 18: Update Claude Skills & Documentation in `.claude`
+
+**Status:** Completed
+
+### Summary of changes
+
+- **`CLAUDE.md` rewritten** as a short orientation file: the stack in one line, pointers to both
+  skills, and the non-negotiables that are easy to get wrong (Bun over npm/pnpm, regenerating
+  types after any schema change, Tailwind-only styling, tests + Prettier + ESLint on every
+  change, and the fact that `bun run build` type-checks `tests/` too, so a green Vitest run alone
+  does not prove the types are sound). The auto-generated `nextjs-agent-rules` block was
+  preserved verbatim.
+- **New skill `.claude/skills/code-art-website/SKILL.md`** — the project reference, covering:
+  - Every command in a table (dev, build, `generate:types`, `generate:importmap`, both test
+    suites, format, lint).
+  - The full content model: `Bio` and `Footer` globals, and the `Users`, `Media`,
+    `WorkExperience`, `Skills`, `Projects` and `Blog` collections with their fields and defaults.
+  - Architecture: the `src/` tree, the `(frontend)` vs `(payload)` route groups, and the
+    **"pages fetch, components render"** rule that makes the components unit-testable.
+  - An inventory of every `src/lib` helper, so future work reuses `optionalUrl`,
+    `parsePositiveInt`, `formatPostDate` and friends instead of re-implementing them.
+  - The rendering decisions that are easy to break: `force-dynamic` on the frontend layout,
+    `data-scroll-behavior="smooth"`, awaiting the `params`/`searchParams` promises, and Markdown
+    rendering with raw HTML deliberately disabled.
+  - Styling guidelines (Tailwind v4 CSS-first config, dark mode, focus rings, `scroll-mt-24`).
+  - Testing guidance, including _why_ `fileParallelism: false`, `workers: 1`, the explicit RTL
+    `cleanup` and the WAL/`busyTimeout` settings exist — so nobody "tidies" them away and
+    reintroduces the flakes.
+  - Gotchas: Local API access control, relationship `depth`, the Drizzle
+    `payload_locked_documents_rels` rebuild failure and its fix, and the regenerated CLAUDE.md
+    block.
+- **`.claude/skills/payload/SKILL.md`**: added a note at the top pointing at the project skill
+  first. The rest of that vendored reference was left intact.
+
+### Verification
+
+Documentation can drift from reality, so rather than only eyeballing it:
+
+| Check                                                                                                                | Result                                                            |
+| -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Markdown formatting (`bunx prettier --check "**/*.md"`)                                                              | All files match Prettier style                                    |
+| Every `src/lib` helper named in the skill exists                                                                     | Verified by grepping all 26 documented exports — no misses        |
+| Every config claim (`force-dynamic`, `fileParallelism: false`, `workers: 1`, `wal`, `busyTimeout`, `/media` ignored) | Verified against the actual files                                 |
+| Skill is discoverable                                                                                                | `code-art-website` is registered and listed as an available skill |
+| Unit / integration                                                                                                   | `bun run test:int` — 18 files, 160 tests passed                   |
+| Lint                                                                                                                 | `bun run lint` — 0 errors, 0 warnings                             |
+
+### Files modified / created
+
+- `CLAUDE.md` (rewritten)
+- `.claude/skills/code-art-website/SKILL.md` (created)
+- `.claude/skills/payload/SKILL.md` (cross-reference added)

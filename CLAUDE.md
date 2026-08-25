@@ -1,7 +1,25 @@
 # Claude Code
 
-This project uses the Payload CMS skill at `.claude/skills/payload/`.
-Start with `.claude/skills/payload/SKILL.md` for a quick reference, then see `.claude/skills/payload/reference/` for detailed docs.
+Personal website for a software engineer: **Payload CMS 3** + **Next.js 16 (App Router)** +
+**React 19**, running on **Bun** with a **SQLite** database and **Tailwind CSS v4**.
+
+## Skills
+
+- `.claude/skills/code-art-website/SKILL.md` — **start here.** This project's content model,
+  architecture, conventions and commands.
+- `.claude/skills/payload/SKILL.md` — general Payload CMS reference, with deeper docs in
+  `.claude/skills/payload/reference/`.
+
+## Non-negotiables
+
+- **Bun, not npm/pnpm/yarn.** `bun install`, `bun run <script>`, `bunx <binary>`.
+- **Run `bun run generate:types` after any change to a collection, global or field.**
+  `src/payload-types.ts` is generated — never hand-edit it.
+- **Tailwind utility classes only** for frontend styling. There is no component CSS file.
+- **Every change ships with tests**: Vitest specs in `tests/int/`, Playwright specs in
+  `tests/e2e/`. Then `bunx prettier --write .` and `bun run lint` must both be clean.
+- `bun run build` type-checks `tests/` as well as `src/`, so a green Vitest run alone does not
+  prove the types are sound.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

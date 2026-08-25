@@ -496,3 +496,61 @@ link is marked, and the fixed menu is still visible after scrolling.
 
 The spec asserts the slug, public read access, config registration, `useAsTitle`, the default
 sort, and that `title` is text/required/unique/indexed.
+
+---
+
+## Task 10: Add Projects Collection
+
+**Status:** Completed
+
+### Summary of changes
+
+- Created `src/collections/Projects.ts` (slug `projects`) with `title`, `slug` (required,
+  unique, indexed), `summary`, `description` (required Lexical rich text), optional
+  `externalLink` / `githubLink`, a required `skills` relationship (`hasMany`, inline create and
+  edit enabled so new skills can be added straight from the project form), an optional `images`
+  relationship to `media` (`hasMany`, sortable — the first image becomes the card thumbnail),
+  and a `highlight` checkbox defaulting to `false`, placed in the admin sidebar.
+- A `beforeValidate` hook on `slug` derives the slug from the title when it is left blank and
+  normalises anything typed by hand, so editors cannot accidentally create an invalid URL.
+- Registered in `src/payload.config.ts` and regenerated types (`Project`, `ProjectSelect`).
+
+**Refactor.** This was the third field needing URL validation, so the duplicated validators were
+extracted into `src/lib/validation.ts` (`requiredUrl`, `optionalUrl`, `yearValidator`,
+`validateSlug`) and `src/lib/slug.ts` (`slugify`, which also folds accents via NFKD).
+`src/globals/Footer.ts` and `src/collections/WorkExperience.ts` now use the shared helpers;
+their existing tests continued to pass unchanged.
+
+**Local database repair (no code change).** Registering `projects` made Drizzle's SQLite dev
+push rebuild `payload_locked_documents_rels` to add the `projects_id` foreign key. Its generated
+copy statement selects `projects_id` _from the old table_, which does not have it yet, so the
+push aborted with `SQLITE_ERROR: no such column: projects_id` and left an orphaned
+`__new_payload_locked_documents_rels` behind. That table only tracks admin document locks and
+was empty, so after backing the file up I dropped the orphan and the empty table and let the
+next push recreate it. Verified afterwards that `payload_locked_documents_rels` exists with all
+nine columns including `projects_id`. A fresh clone with no database file is unaffected, since
+everything is then created in one pass.
+
+### Files modified / created
+
+- `src/collections/Projects.ts` (created)
+- `src/lib/validation.ts`, `src/lib/slug.ts` (created)
+- `src/globals/Footer.ts`, `src/collections/WorkExperience.ts` (refactored onto shared helpers)
+- `src/payload.config.ts` (modified)
+- `src/payload-types.ts` (regenerated)
+- `tests/int/projects.collection.int.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command             | Result                    |
+| ------------------ | ------------------- | ------------------------- |
+| Unit / integration | `bun run test:int`  | 10 files, 83 tests passed |
+| Types              | `bunx tsc --noEmit` | Clean                     |
+| Lint               | `bun run lint`      | 0 errors, 0 warnings      |
+
+The spec covers `slugify` (punctuation, accents, trimming), config registration, public read
+access, every field's type and `required` flag, slug uniqueness/indexing, the slug hook (derive
+from title, normalise a hand-typed value, no-op when there is nothing to derive from), slug
+validation (rejecting uppercase, spaces, doubled and leading hyphens), both optional URL fields,
+the skills relationship including `allowCreate`, the optional images relationship, and the
+`highlight` default.

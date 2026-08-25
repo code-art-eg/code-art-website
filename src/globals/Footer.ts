@@ -1,5 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
+import { requiredUrl } from '@/lib/validation'
+
 /**
  * Site-wide footer settings: the copyright line and the list of social profiles
  * rendered in the frontend footer.
@@ -51,18 +53,7 @@ export const Footer: GlobalConfig = {
           type: 'text',
           required: true,
           label: 'URL',
-          validate: (value: string | null | undefined) => {
-            if (!value) return 'Please enter a URL.'
-            try {
-              const { protocol } = new URL(value)
-              if (protocol !== 'http:' && protocol !== 'https:') {
-                return 'URL must start with http:// or https://'
-              }
-            } catch {
-              return 'Please enter a valid absolute URL, e.g. https://github.com/your-handle'
-            }
-            return true
-          },
+          validate: requiredUrl,
         },
       ],
     },

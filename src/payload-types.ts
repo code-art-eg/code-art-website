@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     'work-experience': WorkExperience;
     skills: Skill;
+    projects: Project;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,6 +83,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     'work-experience': WorkExperienceSelect<false> | WorkExperienceSelect<true>;
     skills: SkillsSelect<false> | SkillsSelect<true>;
+    projects: ProjectsSelect<false> | ProjectsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -225,6 +227,61 @@ export interface Skill {
   createdAt: string;
 }
 /**
+ * Portfolio projects shown on the projects pages and the home page.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects".
+ */
+export interface Project {
+  id: number;
+  title: string;
+  /**
+   * URL segment, e.g. /projects/my-project. Generated from the title if empty.
+   */
+  slug: string;
+  /**
+   * One or two sentences shown on project cards.
+   */
+  summary: string;
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Optional link to the live project.
+   */
+  externalLink?: string | null;
+  /**
+   * Optional link to the source repository.
+   */
+  githubLink?: string | null;
+  /**
+   * Start typing to search; new skills can be created inline.
+   */
+  skills: (number | Skill)[];
+  /**
+   * Optional gallery. The first image is used as the card thumbnail.
+   */
+  images?: (number | Media)[] | null;
+  /**
+   * Highlighted projects are featured on the home page.
+   */
+  highlight?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -263,6 +320,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'skills';
         value: number | Skill;
+      } | null)
+    | ({
+        relationTo: 'projects';
+        value: number | Project;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -367,6 +428,23 @@ export interface WorkExperienceSelect<T extends boolean = true> {
  */
 export interface SkillsSelect<T extends boolean = true> {
   title?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects_select".
+ */
+export interface ProjectsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  summary?: T;
+  description?: T;
+  externalLink?: T;
+  githubLink?: T;
+  skills?: T;
+  images?: T;
+  highlight?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -1,20 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-const currentYear = new Date().getFullYear()
-
-/** Years are plain integers; guard against typos like 202 or 20255. */
-const yearValidator =
-  (required: boolean) =>
-  (value: number | null | undefined): string | true => {
-    if (value === null || value === undefined) {
-      return required ? 'Please enter a year.' : true
-    }
-    if (!Number.isInteger(value)) return 'Please enter a whole year, e.g. 2019.'
-    if (value < 1950 || value > currentYear + 10) {
-      return `Please enter a year between 1950 and ${currentYear + 10}.`
-    }
-    return true
-  }
+import { optionalUrl, yearValidator } from '@/lib/validation'
 
 /**
  * Work history entries rendered as the "Experience" timeline on the home page.
@@ -52,18 +38,7 @@ export const WorkExperience: CollectionConfig = {
       admin: {
         description: 'Optional link to the company website.',
       },
-      validate: (value: string | null | undefined): string | true => {
-        if (!value) return true
-        try {
-          const { protocol } = new URL(value)
-          if (protocol !== 'http:' && protocol !== 'https:') {
-            return 'URL must start with http:// or https://'
-          }
-        } catch {
-          return 'Please enter a valid absolute URL, e.g. https://example.com'
-        }
-        return true
-      },
+      validate: optionalUrl,
     },
     {
       name: 'location',

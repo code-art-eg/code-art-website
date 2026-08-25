@@ -2,7 +2,8 @@ import { getPayload } from 'payload'
 import type { Payload } from 'payload'
 
 import config from '../../src/payload.config.js'
-import type { Config, Footer } from '../../src/payload-types.js'
+import type { Bio, Config, Footer } from '../../src/payload-types.js'
+import { lexicalParagraphs } from './lexical'
 
 type GlobalSlug = keyof Config['globals']
 
@@ -49,3 +50,17 @@ export const footerFixture = {
 export const seedFooter = async (): Promise<Footer> => seedGlobal<Footer>('footer', footerFixture)
 
 export const restoreFooter = async (): Promise<void> => restoreGlobal('footer')
+
+export const bioFixture = {
+  title: 'Test Engineer',
+  subtitle: 'Senior Software Engineer',
+  shortPhrase: 'I build reliable web applications end to end.',
+  aboutMe: lexicalParagraphs(
+    'I have been writing software professionally for over a decade.',
+    'These days I work mostly with TypeScript, React and .NET.',
+  ),
+}
+
+export const seedBio = async (): Promise<Bio> => seedGlobal<Bio>('bio', bioFixture)
+
+export const restoreBio = async (): Promise<void> => restoreGlobal('bio')

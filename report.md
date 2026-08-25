@@ -285,3 +285,63 @@ The spec asserts the slug, public read access, registration in the built config,
 is required, that `subtitle`/`shortPhrase` are optional text fields, that `aboutMe` is
 `richText`, and that Payload injected the root Lexical editor into it. Rendering (and its E2E
 coverage) follows in Task 6.
+
+---
+
+## Task 6: Display Bio on Home Page
+
+**Status:** Completed
+
+### Summary of changes
+
+- Added `@tailwindcss/typography` and registered it in `src/app/(frontend)/styles.css` with
+  `@plugin '@tailwindcss/typography'` (the Tailwind v4 way), so rich text and — later —
+  Markdown get sensible prose styling in both colour schemes.
+- `src/lib/globals.ts`: added `getBio()`. It treats a global with no `title` as "not seeded"
+  and returns `null`, because Payload creates an empty global row as soon as it is registered.
+- `src/components/BioSection.tsx`: presentational hero (name as `<h1>`, subtitle, short phrase)
+  plus an "About me" block that renders the Lexical state through `RichText` from
+  `@payloadcms/richtext-lexical/react` with `prose`/`dark:prose-invert` classes. Optional
+  fields are omitted entirely when empty. The section carries `id="about"` with
+  `scroll-mt-24`, ready for the Task 8 navigation menu.
+- `src/app/(frontend)/page.tsx`: fetches the `bio` global via the Local API and renders
+  `<BioSection />`, falling back to an admin-panel call-to-action when the global is unseeded.
+  Added `generateMetadata()` so the page title becomes `"<Name> — <Subtitle>"` and the
+  description the short phrase.
+- `tests/helpers/lexical.ts`: `lexicalParagraphs()` builds a minimal valid Lexical editor state
+  for seeding and asserting rich text without instantiating the editor.
+
+**E2E infrastructure fix.** The suite started failing with
+`LibsqlError: SQLITE_BUSY: database is locked`. Playwright defaults to one worker per two CPUs,
+and every spec file spins up its own Payload client that runs a dev schema push against the
+same SQLite file the dev server already holds open. Set `workers: 1` in `playwright.config.ts` —
+the specs also mutate shared globals, so they must not interleave regardless. Also reduced
+`tests/e2e/frontend.e2e.spec.ts` to a content-independent smoke test (page 200s, has an `h1`,
+has a footer) now that `home.e2e.spec.ts` covers the real home page content.
+
+### Files modified / created
+
+- `src/components/BioSection.tsx` (created)
+- `src/app/(frontend)/page.tsx` (rewritten)
+- `src/app/(frontend)/styles.css`, `src/lib/globals.ts` (modified)
+- `package.json`, `bun.lock` (added `@tailwindcss/typography`)
+- `playwright.config.ts` (modified — `workers: 1`)
+- `tests/helpers/lexical.ts` (created)
+- `tests/helpers/seedContent.ts` (added the bio fixture/seed/restore)
+- `tests/int/bio.component.int.spec.tsx` (created)
+- `tests/e2e/home.e2e.spec.ts` (created)
+- `tests/e2e/frontend.e2e.spec.ts` (simplified to a smoke test)
+
+### Test verification
+
+| Check              | Command            | Result                   |
+| ------------------ | ------------------ | ------------------------ |
+| Unit / integration | `bun run test:int` | 5 files, 27 tests passed |
+| E2E                | `bun run test:e2e` | 7 tests passed           |
+| Build              | `bun run build`    | Success                  |
+| Lint               | `bun run lint`     | 0 errors, 0 warnings     |
+
+Unit tests cover the `h1` name, subtitle, short phrase, both rendered rich text paragraphs, the
+omission of empty optional blocks, and the `#about` anchor. E2E seeds the bio global, asserts
+the hero and About me content render on `/`, checks the generated page title, and restores the
+previous global value afterwards.

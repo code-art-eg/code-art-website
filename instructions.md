@@ -1,7 +1,9 @@
 # Project Instructions for Claude Code
 
 ## Overview
+
 This repository contains a personal website for a software engineer built with:
+
 - **Payload CMS 3.0** (headless CMS with admin panel)
 - **Next.js 15+ / React 19** (App Router frontend and Payload API backend)
 - **Bun** (runtime & package manager)
@@ -61,6 +63,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 1: Fix Broken Lint Error
+
 - **Goal**: Fix the existing lint error/issue when running `eslint` / `bun run lint`.
 - **Requirements**:
   - Run `bun run lint` to identify the issue.
@@ -74,6 +77,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 2: Update Packages to Latest Compatible Versions
+
 - **Goal**: Update dependencies and devDependencies to their latest compatible versions without breaking compatibility.
 - **Requirements**:
   - Check for outdated dependencies using `bun outdated` or package manager tools.
@@ -90,6 +94,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 3: Add Footer Global
+
 - **Goal**: Create a Payload Global for site-wide Footer settings.
 - **Requirements**:
   - Create global configuration `src/globals/Footer.ts` (or `src/collections/` as appropriate for globals).
@@ -108,6 +113,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 4: Update Site Layout to Display Footer
+
 - **Goal**: Render the Footer component in the frontend layout across pages.
 - **Requirements**:
   - Create a reusable `Footer` component in `src/components/Footer.tsx`.
@@ -123,6 +129,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 5: Add Bio Global
+
 - **Goal**: Create a Payload Global for the author's biography.
 - **Requirements**:
   - Create `src/globals/Bio.ts` (slug: `bio`).
@@ -141,6 +148,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 6: Display Bio on Home Page
+
 - **Goal**: Render the Bio on the home page (`/`).
 - **Requirements**:
   - Update `src/app/(frontend)/page.tsx` (or a dedicated `BioSection` component).
@@ -156,6 +164,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 7: Add Work Experience Collection
+
 - **Goal**: Create a Payload Collection for work experience entries.
 - **Requirements**:
   - Create `src/collections/WorkExperience.ts` (slug: `work-experience`).
@@ -177,6 +186,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 8: Display Work Experience on Home Page with Animated Nav Menu
+
 - **Goal**: Display work experiences on the home page and add a fixed navigation menu with smooth scroll animation.
 - **Requirements**:
   - Fetch work experience items sorted chronologically (e.g., startYear descending).
@@ -192,6 +202,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 9: Add Skill Collection
+
 - **Goal**: Create a Payload Collection for technical skills.
 - **Requirements**:
   - Create `src/collections/Skills.ts` (slug: `skills`).
@@ -208,6 +219,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 10: Add Projects Collection
+
 - **Goal**: Create a Payload Collection for portfolio projects.
 - **Requirements**:
   - Create `src/collections/Projects.ts` (slug: `projects`).
@@ -231,6 +243,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 11: Add Single Project Page (`/projects/:slug`)
+
 - **Goal**: Create a dynamic Next.js page to display a single project.
 - **Requirements**:
   - Create route `src/app/(frontend)/projects/[slug]/page.tsx`.
@@ -250,6 +263,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 12: Add Project List Page (`/projects`)
+
 - **Goal**: Create a project listing page with grid layout and pagination.
 - **Requirements**:
   - Create route `src/app/(frontend)/projects/page.tsx`.
@@ -271,6 +285,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 13: Display Highlighted Projects on Home Page & Update Menu
+
 - **Goal**: Display top 5 highlighted projects on the home page and add "Projects" to the main menu.
 - **Requirements**:
   - On the home page (`src/app/(frontend)/page.tsx`), query top 5 projects where `highlight === true` (ordered by creation/date).
@@ -291,6 +306,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 14: Add Blog Collection
+
 - **Goal**: Create a Payload Collection for blog posts.
 - **Requirements**:
   - Create `src/collections/Blog.ts` (slug: `blog` or `posts`).
@@ -310,6 +326,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 15: Add Single Blog Page (`/blog/:slug`)
+
 - **Goal**: Create a dynamic Next.js page to display a single blog post.
 - **Requirements**:
   - Create route `src/app/(frontend)/blog/[slug]/page.tsx`.
@@ -326,6 +343,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 16: Add Blog List Page (`/blog`) with Year Filter & Pagination
+
 - **Goal**: Create a blog listing page with pagination and unique year filtering.
 - **Requirements**:
   - Create route `src/app/(frontend)/blog/page.tsx`.
@@ -343,6 +361,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 17: Display Latest Blog Posts on Home Page
+
 - **Goal**: Show the 5 most recent blog posts on the home page and update main menu.
 - **Requirements**:
   - On the home page, fetch the latest 5 blog posts ordered by `publishedAt` / date descending.
@@ -358,6 +377,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 18: Update Claude Skills & Documentation in `.claude`
+
 - **Goal**: Update `.claude` documentation and skills to help Claude understand the project architecture and facilitate future maintenance.
 - **Requirements**:
   - Update `CLAUDE.md` and any skills under `.claude/skills/` with:
@@ -374,6 +394,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ---
 
 ### Task 19: Update `README.md`
+
 - **Goal**: Provide complete, professional documentation for the website repository.
 - **Requirements**:
   - Update `README.md` with:
@@ -393,6 +414,7 @@ For **every task**, follow this strict step-by-step lifecycle before moving to t
 ## Summary Checklist for Claude Code
 
 When working through each task:
+
 ```
 [ ] 1. Check `git status` (must be clean)
 [ ] 2. Make code changes (Tailwind CSS, clean React/Next.js/Payload code)

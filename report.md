@@ -554,3 +554,56 @@ from title, normalise a hand-typed value, no-op when there is nothing to derive 
 validation (rejecting uppercase, spaces, doubled and leading hyphens), both optional URL fields,
 the skills relationship including `allowCreate`, the optional images relationship, and the
 `highlight` default.
+
+---
+
+## Task 11: Add Single Project Page (`/projects/:slug`)
+
+**Status:** Completed
+
+### Summary of changes
+
+- `src/lib/collections.ts`: `getProjectBySlug()` queries by slug with `depth: 1` so the `skills`
+  and `images` relationships come back populated, and returns `null` when nothing matches.
+- `src/lib/media.ts`: `populatedMedia()` / `firstImage()` filter relationship entries down to the
+  ones that were actually populated, so a `depth: 0` query can never crash a component.
+- `src/components/Icons.tsx`: shared stroke icons (external link, chevrons).
+- `src/components/SkillBadges.tsx`: renders the populated skills relationship as a labelled
+  badge list.
+- `src/components/ProjectGallery.tsx` (client component): image carousel built on `next/image`
+  with previous/next buttons and indicator dots. Index arithmetic wraps in both directions, the
+  active dot is marked `aria-current`, the whole thing is labelled
+  `aria-roledescription="carousel"`, and an `aria-live="polite"` "Image N of M" region announces
+  movement. Controls are hidden entirely for a single image, and nothing renders for none.
+- `src/components/ProjectDetail.tsx`: title, summary, "Visit project" button with the outbound
+  icon, "View source" button with the GitHub glyph, skill badges, the gallery, the Lexical
+  description in a `prose` block, and a "Back to projects" link.
+- `src/app/(frontend)/projects/[slug]/page.tsx`: awaits the `params` promise (Next 16 App Router),
+  calls `notFound()` for unknown slugs, and implements `generateMetadata()` returning the project
+  title and summary.
+
+### Files modified / created
+
+- `src/app/(frontend)/projects/[slug]/page.tsx` (created)
+- `src/components/ProjectDetail.tsx`, `ProjectGallery.tsx`, `SkillBadges.tsx`, `Icons.tsx` (created)
+- `src/lib/media.ts` (created), `src/lib/collections.ts` (modified)
+- `tests/helpers/fixtures.ts` (added `makeProject`, `makeSkill`, `makeMedia`)
+- `tests/helpers/seedContent.ts` (added media/skill/project seeding and cleanup)
+- `tests/int/projectDetail.int.spec.tsx`, `tests/e2e/project-detail.e2e.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command            | Result                                         |
+| ------------------ | ------------------ | ---------------------------------------------- |
+| Unit / integration | `bun run test:int` | 11 files, 93 tests passed                      |
+| E2E                | `bun run test:e2e` | 12 tests passed                                |
+| Build              | `bun run build`    | Success — `/projects/[slug]` listed as dynamic |
+| Lint               | `bun run lint`     | 0 errors, 0 warnings                           |
+
+Unit tests cover the heading/summary/description, both link buttons and their omission, the
+skill badges, the back link, and the carousel: no images, one image (no controls), forward and
+backward stepping including wrap-around in both directions, jumping via a dot with the
+`aria-current` marker, and the live-region position announcement. The E2E spec seeds a project
+with three genuinely uploaded PNG media rows plus its skills, asserts the rendered page,
+metadata, links and badges, drives the carousel in a real browser, asserts an unknown slug
+returns HTTP 404, and deletes every seeded project/skill/media row afterwards.

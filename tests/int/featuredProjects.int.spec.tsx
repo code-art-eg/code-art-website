@@ -56,7 +56,11 @@ describe('<FeaturedProjects />', () => {
 })
 
 describe('main menu', () => {
-  it('includes Projects after About and Experience', () => {
-    expect(navItems.map((item) => item.id)).toEqual(['about', 'experience', 'projects'])
+  it('includes Projects, after About and Experience', () => {
+    const ids = navItems.map((item) => item.id)
+
+    expect(ids).toContain('projects')
+    expect(ids.indexOf('projects')).toBeGreaterThan(ids.indexOf('experience'))
+    expect(ids.indexOf('experience')).toBeGreaterThan(ids.indexOf('about'))
   })
 })

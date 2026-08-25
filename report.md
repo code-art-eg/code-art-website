@@ -873,3 +873,47 @@ and rendering nothing with no posts). The E2E spec seeds four posts across 2024�
 newest-first ordering, filters to 2026 and checks the 2025 post disappears, returns to All, then
 paginates at `limit=1` within the 2026 filter verifying the year survives the page change and
 that Next is disabled on the last page of the filtered set.
+
+---
+
+## Task 17: Display Latest Blog Posts on Home Page
+
+**Status:** Completed
+
+### Summary of changes
+
+- `src/components/LatestPosts.tsx`: `#blog` section reusing `BlogList` (title link, `<time>`,
+  formatted date, summary) with a "View all blog posts →" link to `/blog`. Renders nothing when
+  there are no posts, so the section never appears empty.
+- `src/lib/navigation.ts`: appended `{ id: 'blog', label: 'Blog' }` — the fixed menu is now
+  About / Experience / Projects / Blog, still driven entirely by that list.
+- `src/app/(frontend)/page.tsx`: `getLatestPosts()` (added in Task 16, limit 5, sorted
+  `-publishedAt`) joins the existing `Promise.all`, and the section renders below the projects.
+
+**Test updated.** The Task 13 spec asserted the menu was _exactly_ `[about, experience,
+projects]`, which this task legitimately extends. Loosened it to assert that Projects is present
+and ordered after About and Experience — the exact list is asserted once, in the new
+`latestPosts` spec, so adding a future menu item only touches one test.
+
+### Files modified / created
+
+- `src/components/LatestPosts.tsx` (created)
+- `src/lib/navigation.ts`, `src/app/(frontend)/page.tsx` (modified)
+- `tests/int/latestPosts.int.spec.tsx` (created)
+- `tests/int/featuredProjects.int.spec.tsx` (nav assertion loosened)
+- `tests/e2e/home-blog.e2e.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command            | Result                     |
+| ------------------ | ------------------ | -------------------------- |
+| Unit / integration | `bun run test:int` | 18 files, 160 tests passed |
+| E2E                | `bun run test:e2e` | 26 tests passed            |
+| Build              | `bun run build`    | Success                    |
+| Lint               | `bun run lint`     | 0 errors, 0 warnings       |
+
+Unit tests cover the rendered posts, ordering, the archive link, the `#blog` anchor, the empty
+case and the full menu order. The E2E spec seeds six posts and asserts only the five most recent
+appear (the oldest is pushed off), follows "View all blog posts" to `/blog`, clicks the Blog
+menu item and asserts the section scrolls into view and is marked active, and follows a post
+link through to the post page.

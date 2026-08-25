@@ -4,7 +4,8 @@ import type { Metadata } from 'next'
 import { BioSection } from '@/components/BioSection'
 import { ExperienceList } from '@/components/ExperienceList'
 import { FeaturedProjects } from '@/components/FeaturedProjects'
-import { getFeaturedProjects, getWorkExperience } from '@/lib/collections'
+import { LatestPosts } from '@/components/LatestPosts'
+import { getFeaturedProjects, getLatestPosts, getWorkExperience } from '@/lib/collections'
 import { getBio } from '@/lib/globals'
 import { getPayloadClient } from '@/lib/payload'
 
@@ -39,10 +40,11 @@ const EmptyState: React.FC<{ adminRoute: string }> = ({ adminRoute }) => (
 )
 
 export default async function HomePage() {
-  const [bio, experience, featured] = await Promise.all([
+  const [bio, experience, featured, posts] = await Promise.all([
     getBio(),
     getWorkExperience(),
     getFeaturedProjects(),
+    getLatestPosts(),
   ])
 
   if (!bio) {
@@ -60,6 +62,7 @@ export default async function HomePage() {
       />
       <ExperienceList items={experience} />
       <FeaturedProjects projects={featured.projects} totalProjects={featured.totalProjects} />
+      <LatestPosts posts={posts} />
     </>
   )
 }

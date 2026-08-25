@@ -8,5 +8,11 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     include: ['tests/int/**/*.int.spec.{ts,tsx}'],
+    /**
+     * The integration specs share one SQLite file, and Payload runs a dev schema push on
+     * init. Running spec files in parallel let those collide (intermittent SQLITE_ERROR on
+     * a cold run), so files run one at a time — the suite only takes a few seconds anyway.
+     */
+    fileParallelism: false,
   },
 })

@@ -4,6 +4,7 @@ import type { Payload } from 'payload'
 import config from '../../src/payload.config.js'
 import type {
   Bio,
+  Blog,
   Config,
   Footer,
   Media,
@@ -240,4 +241,75 @@ export const seedManyProjects = async (
     )
   }
   return created
+}
+
+export const postFixture = {
+  title: 'E2E Testing With Playwright',
+  slug: 'test-post-e2e-testing-with-playwright',
+  summary: 'A post seeded by the end-to-end tests.',
+  publishedAt: '2026-03-05T00:00:00.000Z',
+  formattedDate: '5 March 2026',
+  content: [
+    '# Getting started',
+    '',
+    'Some **bold** text and a [link](https://example.com).',
+    '',
+    '- first item',
+    '- second item',
+  ].join('\n'),
+}
+
+/** Posts spread across three years, used by the blog list filter tests. */
+export const postsByYear = [
+  { title: 'E2E Post 2026 A', slug: 'test-post-2026-a', publishedAt: '2026-05-01T00:00:00.000Z' },
+  { title: 'E2E Post 2026 B', slug: 'test-post-2026-b', publishedAt: '2026-02-01T00:00:00.000Z' },
+  { title: 'E2E Post 2025 A', slug: 'test-post-2025-a', publishedAt: '2025-07-01T00:00:00.000Z' },
+  { title: 'E2E Post 2024 A', slug: 'test-post-2024-a', publishedAt: '2024-09-01T00:00:00.000Z' },
+]
+
+export const seedPost = async (
+  overrides: Partial<{
+    title: string
+    slug: string
+    summary: string
+    content: string
+    publishedAt: string
+  }> = {},
+): Promise<Blog> => {
+  const payload = await getClient()
+
+  return (await payload.create({
+    collection: 'blog',
+    data: {
+      title: postFixture.title,
+      slug: postFixture.slug,
+      summary: postFixture.summary,
+      content: postFixture.content,
+      publishedAt: postFixture.publishedAt,
+      ...overrides,
+    } as never,
+  })) as Blog
+}
+
+export const seedPostsByYear = async (): Promise<Blog[]> => {
+  const created: Blog[] = []
+  for (const post of postsByYear) {
+    created.push(
+      await seedPost({
+        ...post,
+        summary: `Summary for ${post.title}.`,
+        content: `Body for ${post.title}.`,
+      }),
+    )
+  }
+  return created
+}
+
+/** Removes every blog post created by the E2E fixtures. */
+export const cleanupPosts = async (): Promise<void> => {
+  const payload = await getClient()
+  await payload.delete({
+    collection: 'blog',
+    where: { slug: { like: 'test-post-' } },
+  })
 }

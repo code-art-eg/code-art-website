@@ -762,3 +762,62 @@ The spec covers the slug, public read access, config registration, `useAsTitle`/
 each field's type and `required` flag, slug derivation and validation, the Markdown language
 hint on `content`, and that `publishedAt` is indexed with a callable default producing a
 parseable date.
+
+---
+
+## Task 15: Add Single Blog Page (`/blog/:slug`)
+
+**Status:** Completed
+
+### Summary of changes
+
+- Added `react-markdown` and `remark-gfm` as dependencies.
+- `src/lib/date.ts`: `formatPostDate()` renders "5 March 2026" and `postYear()` extracts the
+  calendar year. Both format **in UTC** deliberately — posts are stored via a day-only picker
+  (midnight UTC), and a timezone-dependent format would produce a different day on the server
+  than in the browser and trip React's hydration check.
+- `src/lib/collections.ts`: `getPostBySlug()`.
+- `src/components/Markdown.tsx`: renders Markdown with GitHub-flavoured extensions (tables,
+  strikethrough, task lists) inside a `prose` container. Raw HTML is _not_ enabled
+  (`rehype-raw` is deliberately absent), so CMS content cannot inject markup. External links get
+  `target="_blank"` + `rel="noopener noreferrer"` while internal links stay in place.
+- `src/components/BlogPost.tsx`: back link, title, machine-readable `<time>` element, summary,
+  divider and the rendered Markdown body.
+- `src/app/(frontend)/blog/[slug]/page.tsx`: awaits `params`, `notFound()` on a miss, and
+  `generateMetadata()` returning the title, summary and OpenGraph article metadata including
+  `publishedTime`.
+
+**Test-suite fix.** The integration suite intermittently failed on cold runs with a
+`SQLITE_ERROR` raised inside `getPayload()` in `tests/int/api.int.spec.ts` — Vitest runs spec
+files in parallel, and Payload's dev schema push is not safe to run concurrently against one
+SQLite file. It never reproduced once the module cache was warm (5 consecutive clean runs), which
+is exactly what makes it a nasty flake in CI. Set `fileParallelism: false` in
+`vitest.config.mts`, mirroring the `workers: 1` decision already made for Playwright; a cold run
+with `node_modules/.vite` deleted now passes.
+
+### Files modified / created
+
+- `src/app/(frontend)/blog/[slug]/page.tsx` (created)
+- `src/components/BlogPost.tsx`, `src/components/Markdown.tsx` (created)
+- `src/lib/date.ts` (created), `src/lib/collections.ts` (modified)
+- `package.json`, `bun.lock` (react-markdown, remark-gfm)
+- `vitest.config.mts` (`fileParallelism: false`)
+- `tests/helpers/fixtures.ts` (added `makePost`)
+- `tests/helpers/seedContent.ts` (blog post seeding/cleanup + year fixtures for Task 16)
+- `tests/int/blogPost.int.spec.tsx`, `tests/e2e/blog-post.e2e.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command            | Result                                        |
+| ------------------ | ------------------ | --------------------------------------------- |
+| Unit / integration | `bun run test:int` | 16 files, 140 tests passed (incl. a cold run) |
+| E2E                | `bun run test:e2e` | 20 tests passed                               |
+| Build              | `bun run build`    | Success — `/blog/[slug]` listed as dynamic    |
+| Lint               | `bun run lint`     | 0 errors, 0 warnings                          |
+
+Unit tests cover UTC date formatting and its empty/unparseable fallbacks, year extraction,
+Markdown rendering of headings/emphasis/lists/GFM tables, external-vs-internal link handling,
+the fact that raw `<script>` HTML is escaped rather than executed, and the post layout
+including the `<time datetime>` attribute and the back link. The E2E spec seeds a post, asserts
+the Markdown really became HTML elements (and that the raw `#` source is nowhere on the page),
+checks the formatted date, title metadata and back link, and asserts an unknown slug 404s.

@@ -1,6 +1,6 @@
 import type { PaginatedDocs } from 'payload'
 
-import type { Project, WorkExperience } from '@/payload-types'
+import type { Blog, Project, WorkExperience } from '@/payload-types'
 
 import { getPayloadClient } from './payload'
 
@@ -87,4 +87,18 @@ export const getFeaturedProjects = async (
   } catch {
     return { projects: [], totalProjects: 0 }
   }
+}
+
+/**
+ * Single blog post by slug. Returns `null` when nothing matches.
+ */
+export const getPostBySlug = async (slug: string): Promise<Blog | null> => {
+  const payload = await getPayloadClient()
+  const { docs } = await payload.find({
+    collection: 'blog',
+    where: { slug: { equals: slug } },
+    limit: 1,
+    depth: 0,
+  })
+  return docs[0] ?? null
 }

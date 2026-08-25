@@ -1,4 +1,4 @@
-import type { Media, Project, Skill, WorkExperience } from '../../src/payload-types.js'
+import type { Blog, Media, Project, Skill, WorkExperience } from '../../src/payload-types.js'
 
 import { lexicalParagraphs } from './lexical'
 
@@ -58,5 +58,17 @@ export const makeProject = (overrides: Partial<Project> = {}): Project => ({
   highlight: false,
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
+  ...overrides,
+})
+
+export const makePost = (overrides: Partial<Blog> = {}): Blog => ({
+  id: nextId++,
+  title: 'Testing Payload collections',
+  slug: 'testing-payload-collections',
+  summary: 'How I test Payload CMS collections with Vitest.',
+  content: '# Heading\n\nSome **bold** text and a [link](https://example.com).',
+  publishedAt: '2026-03-05T00:00:00.000Z',
+  createdAt: '2026-03-05T00:00:00.000Z',
+  updatedAt: '2026-03-05T00:00:00.000Z',
   ...overrides,
 })

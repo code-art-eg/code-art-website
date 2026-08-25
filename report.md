@@ -719,3 +719,46 @@ no-projects-at-all case, and the menu item order. The E2E spec seeds six highlig
 asserts exactly five are featured, follows "View all projects" to `/projects`, clicks the
 Projects menu item and asserts the section scrolls into view and is marked active, and follows
 a featured card through to its detail page.
+
+---
+
+## Task 14: Add Blog Collection
+
+**Status:** Completed
+
+### Summary of changes
+
+- Created `src/collections/Blog.ts` (slug `blog`) with:
+  - `title` — required text.
+  - `slug` — required, unique, indexed, with the same `beforeValidate` hook as Projects so it is
+    derived from the title when blank and normalised when typed by hand.
+  - `summary` — required `textarea` (a teaser is usually longer than one line).
+  - `content` — required `code` field with `admin.language: 'markdown'`, giving Markdown
+    syntax highlighting in the admin editor while storing a plain Markdown string.
+  - `publishedAt` — required, indexed `date` in the sidebar, day-only picker, defaulting to now.
+    Indexed because Task 16 filters and sorts by it.
+  - `access.read: () => true`, `admin.useAsTitle: 'title'`, `defaultSort: '-publishedAt'`.
+- Registered in `src/payload.config.ts` and ran `bun run generate:types` (`Blog`, `BlogSelect`).
+- Verified the dev schema push applied cleanly this time — `blog_id` was added to
+  `payload_locked_documents_rels` with a plain `ALTER TABLE`, no table rebuild and no orphaned
+  `__new_*` table, so the Task 10 repair was not needed again.
+
+### Files modified / created
+
+- `src/collections/Blog.ts` (created)
+- `src/payload.config.ts` (modified)
+- `src/payload-types.ts` (regenerated)
+- `tests/int/blog.collection.int.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command             | Result                     |
+| ------------------ | ------------------- | -------------------------- |
+| Unit / integration | `bun run test:int`  | 15 files, 129 tests passed |
+| Types              | `bunx tsc --noEmit` | Clean                      |
+| Lint               | `bun run lint`      | 0 errors, 0 warnings       |
+
+The spec covers the slug, public read access, config registration, `useAsTitle`/`defaultSort`,
+each field's type and `required` flag, slug derivation and validation, the Markdown language
+hint on `content`, and that `publishedAt` is indexed with a callable default producing a
+parseable date.

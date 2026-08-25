@@ -72,6 +72,7 @@ export interface Config {
     'work-experience': WorkExperience;
     skills: Skill;
     projects: Project;
+    blog: Blog;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -84,6 +85,7 @@ export interface Config {
     'work-experience': WorkExperienceSelect<false> | WorkExperienceSelect<true>;
     skills: SkillsSelect<false> | SkillsSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    blog: BlogSelect<false> | BlogSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -282,6 +284,31 @@ export interface Project {
   createdAt: string;
 }
 /**
+ * Markdown posts listed on /blog.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog".
+ */
+export interface Blog {
+  id: number;
+  title: string;
+  /**
+   * URL segment, e.g. /blog/my-post. Generated from the title if empty.
+   */
+  slug: string;
+  /**
+   * Short teaser shown in the blog list.
+   */
+  summary: string;
+  /**
+   * Markdown. Rendered to HTML on the post page.
+   */
+  content: string;
+  publishedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -324,6 +351,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'projects';
         value: number | Project;
+      } | null)
+    | ({
+        relationTo: 'blog';
+        value: number | Blog;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -445,6 +476,19 @@ export interface ProjectsSelect<T extends boolean = true> {
   skills?: T;
   images?: T;
   highlight?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog_select".
+ */
+export interface BlogSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  summary?: T;
+  content?: T;
+  publishedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

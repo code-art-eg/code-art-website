@@ -7,6 +7,7 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { Blog } from './collections/Blog'
 import { Projects } from './collections/Projects'
 import { Skills } from './collections/Skills'
 import { WorkExperience } from './collections/WorkExperience'
@@ -23,7 +24,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, WorkExperience, Skills, Projects],
+  collections: [Users, Media, WorkExperience, Skills, Projects, Blog],
   globals: [Bio, Footer],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

@@ -460,3 +460,39 @@ and that observation is skipped off the home page. The E2E spec seeds two roles,
 timeline renders newest-first with the right company link and year ranges, then clicks each
 menu item and asserts the target section is in the viewport, `window.scrollY` moved, the active
 link is marked, and the fixed menu is still visible after scrolling.
+
+---
+
+## Task 9: Add Skill Collection
+
+**Status:** Completed
+
+### Summary of changes
+
+- Created `src/collections/Skills.ts` (slug `skills`) with a single `title` field that is
+  `required`, `unique` and `index`ed — uniqueness stops the same technology being created twice
+  from the Projects relationship field's inline-create, and the index keeps autocomplete
+  lookups cheap.
+- `admin.useAsTitle: 'title'` as required, plus `defaultColumns` and `defaultSort: 'title'` so
+  the admin list reads alphabetically.
+- `access.read: () => true`, consistent with the other public content.
+- Registered in `src/payload.config.ts` and ran `bun run generate:types` (adds the `Skill`
+  interface — Payload singularises the slug for the type name).
+
+### Files modified / created
+
+- `src/collections/Skills.ts` (created)
+- `src/payload.config.ts` (modified)
+- `src/payload-types.ts` (regenerated)
+- `tests/int/skills.collection.int.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command             | Result                   |
+| ------------------ | ------------------- | ------------------------ |
+| Unit / integration | `bun run test:int`  | 9 files, 64 tests passed |
+| Types              | `bunx tsc --noEmit` | Clean                    |
+| Lint               | `bun run lint`      | 0 errors, 0 warnings     |
+
+The spec asserts the slug, public read access, config registration, `useAsTitle`, the default
+sort, and that `title` is text/required/unique/indexed.

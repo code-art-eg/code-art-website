@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     'work-experience': WorkExperience;
+    skills: Skill;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'work-experience': WorkExperienceSelect<false> | WorkExperienceSelect<true>;
+    skills: SkillsSelect<false> | SkillsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -211,6 +213,18 @@ export interface WorkExperience {
   createdAt: string;
 }
 /**
+ * Technologies used across your projects, e.g. C#, .NET, TypeScript, React.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills".
+ */
+export interface Skill {
+  id: number;
+  title: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -245,6 +259,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'work-experience';
         value: number | WorkExperience;
+      } | null)
+    | ({
+        relationTo: 'skills';
+        value: number | Skill;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -340,6 +358,15 @@ export interface WorkExperienceSelect<T extends boolean = true> {
   startYear?: T;
   endYear?: T;
   jobDescription?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills_select".
+ */
+export interface SkillsSelect<T extends boolean = true> {
+  title?: T;
   updatedAt?: T;
   createdAt?: T;
 }

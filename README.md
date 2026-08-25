@@ -150,12 +150,17 @@ a busy timeout for the same reason.
 
 ```bash
 bun run generate:types      # Regenerate src/payload-types.ts from the config
-bun run generate:importmap  # Regenerate the admin import map after adding custom components
+bun run generate:importmap  # Regenerate src/app/(payload)/admin/importMap.js
 bun run payload <command>   # Any other Payload CLI command
 ```
 
-**Run `bun run generate:types` after every change to a collection, global or field.**
-`src/payload-types.ts` is generated and must never be edited by hand.
+**Run both generators after every change to a collection, global or field**, and commit their
+output. `src/payload-types.ts` and `src/app/(payload)/admin/importMap.js` are generated and must
+never be edited by hand.
+
+The import map is not only for custom components. The admin panel resolves `richText` fields —
+the Lexical editor and each of its toolbar features — through it, so a stale map makes those
+fields render as nothing at all, with no error anywhere in the admin UI.
 
 The schema is applied automatically in development (Payload pushes it to SQLite on startup), so
 no migration step is needed for local work. `bun run devsafe` clears the `.next` cache first if

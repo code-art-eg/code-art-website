@@ -26,6 +26,11 @@ in one app, on Bun, SQLite and Tailwind CSS v4.
 
 Use **Bun**, never npm/pnpm/yarn. Type checking alone: `bunx tsc --noEmit`.
 
+Run **both** generators after any collection/global/field change, and commit their output. The
+import map is not only for custom components — `richText` fields resolve the Lexical editor and
+its toolbar features through it, so a stale map makes those fields render as nothing at all with
+no error shown in the admin UI. `tests/int/importMap.int.spec.ts` fails when the map is stale.
+
 ## Content model
 
 Registered in `src/payload.config.ts`. Everything readable by the frontend sets

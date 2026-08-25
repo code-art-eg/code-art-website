@@ -1032,3 +1032,114 @@ only handles npm/yarn/pnpm lockfiles — none of which match this Bun + SQLite p
 file is referenced by the new README, so following the documentation will not lead anyone into
 them, but they would fail if used. Updating or removing them was outside the scope of Task 19,
 so it is flagged here rather than changed silently.
+
+---
+
+## Fix: rich text editor missing from the admin panel
+
+**Reported:** the rich text editor did not render when creating a Work Experience entry or
+editing the Bio global.
+
+### Root cause
+
+`src/app/(payload)/admin/importMap.js` was never regenerated after the rich text fields were
+added. It still contained the single entry the blank template shipped with:
+
+```js
+'@payloadcms/next/rsc#CollectionCards': CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1,
+```
+
+The admin panel resolves field components by looking their path up in that map. Payload's
+sanitized config points every `richText` field at
+`@payloadcms/richtext-lexical/rsc#RscEntryLexicalField`, and each toolbar feature at its own
+`@payloadcms/richtext-lexical/client#*Client` component. With none of those keys present the
+field resolved to nothing and rendered as an empty gap — **no error was shown in the admin UI**,
+which is why the tasks passed their own verification.
+
+The bug was mine, and it traces back to a gap in the instructions I wrote for myself: the
+per-task lifecycle and `CLAUDE.md` both made `bun run generate:types` a non-negotiable but
+mentioned `generate:importmap` only "for custom admin components". A `richText` field does not
+look like a custom component, so the step was skipped. That framing is corrected below.
+
+### The fix
+
+`bun run generate:importmap` — the map went from 1 entry to 24.
+
+### Scope: which fields were affected
+
+| Field                           | Type       | Affected                                              |
+| ------------------------------- | ---------- | ----------------------------------------------------- |
+| `Bio.aboutMe`                   | `richText` | Yes — broken, now fixed                               |
+| `WorkExperience.jobDescription` | `richText` | Yes — broken, now fixed                               |
+| `Projects.description`          | `richText` | Yes — broken, now fixed (not reported, same cause)    |
+| `Blog.content`                  | `code`     | No — bundled in `@payloadcms/ui`, never import-mapped |
+
+`Projects.description` was broken by the same cause but had not been noticed. `Blog.content`
+renders through Monaco, which ships inside `@payloadcms/ui` and is not resolved via the import
+map, so it worked throughout; it is covered by a test now regardless.
+
+`src/payload-types.ts` was checked by regenerating it — it was already up to date, so the import
+map was the only stale generated file.
+
+### Tests added
+
+Both new suites were verified to **fail against the old import map and pass against the
+regenerated one**, so they are real regression guards rather than tests written to pass.
+
+- **`tests/int/importMap.int.spec.ts`** — walks the sanitized config (recursing through `row`,
+  `collapsible`, `array`, `group`, `tabs` and `blocks`), collects the component path of every
+  `richText` field, and asserts each one appears in the committed import map. It also asserts the
+  Lexical field entry and the default toolbar's client components are present, and guards against
+  a vacuous pass by requiring at least one rich text field to be found.
+- **`tests/e2e/admin-editors.e2e.spec.ts`** — opens all three rich text fields in the real admin
+  panel and asserts the editor is visible, accepts typing, and shows its inline toolbar on
+  selection (the toolbar is a separate set of client components, so a partially stale map would
+  give a typeable box with no controls). Also asserts the Blog markdown code editor mounts.
+- **`tests/e2e/admin-views.e2e.spec.ts`** — the sweep for everything that had not been checked.
+  The existing `admin.e2e.spec.ts` only ever exercised the `users` collection, which has no rich
+  text field, which is why the whole class of bug slipped past it. This walks the list and create
+  view of all six collections and both globals, asserts the expected fields are present, and
+  fails on any uncaught exception or console error. All 14 views pass.
+
+### Documentation corrected
+
+`CLAUDE.md`, `.claude/skills/code-art-website/SKILL.md` and `README.md` now require **both**
+generators after any collection/global/field change and explain that the import map is not only
+for custom components — a stale map makes rich text fields render as nothing with no error shown.
+
+### Unrelated pre-existing failure, also fixed
+
+`bun run build` was failing before any of these changes, at clean `HEAD` (confirmed with a
+`git stash` build):
+
+```
+tsconfig.json(3,5): error TS5101: Option 'baseUrl' is deprecated and will stop functioning in
+TypeScript 7.0.
+```
+
+`package.json` floats TypeScript at `^6` and 6.0.3 promoted this deprecation to an error. Rather
+than silence it with `ignoreDeprecations`, `baseUrl` was removed: both `paths` entries are
+already written with a `./` prefix, so they resolve relative to the tsconfig directory and the
+change is behaviour-preserving. `bunx tsc --noEmit` and the full build both pass.
+
+### Test verification
+
+| Check              | Result                                                     |
+| ------------------ | ---------------------------------------------------------- |
+| Guard fails on bug | Both new suites fail against the old import map — verified |
+| Unit / integration | `bunx vitest run` — 19 files, 163 tests passed             |
+| E2E                | `bun run test:e2e` — 44 tests passed                       |
+| Lint               | `bun run lint` — 0 errors, 0 warnings                      |
+| Formatting         | `bunx prettier --check .` — all files match                |
+| Build              | `bun run build` — success                                  |
+
+### Files modified / created
+
+- `src/app/(payload)/admin/importMap.js` (regenerated — 1 entry to 24)
+- `tsconfig.json` (removed deprecated `baseUrl`)
+- `tests/int/importMap.int.spec.ts` (created)
+- `tests/e2e/admin-editors.e2e.spec.ts` (created)
+- `tests/e2e/admin-views.e2e.spec.ts` (created)
+- `CLAUDE.md`, `.claude/skills/code-art-website/SKILL.md`, `README.md` (generator guidance)
+
+**Status: Completed**

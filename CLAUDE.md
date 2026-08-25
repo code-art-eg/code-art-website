@@ -13,8 +13,12 @@ Personal website for a software engineer: **Payload CMS 3** + **Next.js 16 (App 
 ## Non-negotiables
 
 - **Bun, not npm/pnpm/yarn.** `bun install`, `bun run <script>`, `bunx <binary>`.
-- **Run `bun run generate:types` after any change to a collection, global or field.**
-  `src/payload-types.ts` is generated — never hand-edit it.
+- **Run `bun run generate:types` AND `bun run generate:importmap` after any change to a
+  collection, global or field.** `src/payload-types.ts` and
+  `src/app/(payload)/admin/importMap.js` are both generated — never hand-edit either. The import
+  map is not only for custom components: `richText` fields resolve the Lexical editor and every
+  toolbar feature through it, and a stale map renders those fields as _nothing at all_, with no
+  error in the admin UI. Both files are committed, so regenerate and commit them together.
 - **Tailwind utility classes only** for frontend styling. There is no component CSS file.
 - **Every change ships with tests**: Vitest specs in `tests/int/`, Playwright specs in
   `tests/e2e/`. Then `bunx prettier --write .` and `bun run lint` must both be clean.

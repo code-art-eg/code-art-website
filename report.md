@@ -972,3 +972,63 @@ Documentation can drift from reality, so rather than only eyeballing it:
 - `CLAUDE.md` (rewritten)
 - `.claude/skills/code-art-website/SKILL.md` (created)
 - `.claude/skills/payload/SKILL.md` (cross-reference added)
+
+---
+
+## Task 19: Update `README.md`
+
+**Status:** Completed
+
+### Summary of changes
+
+Replaced the Payload blank-template README (which documented MongoDB, pnpm and a Cloud deploy
+button that do not apply to this project) with documentation for what this repository actually
+is:
+
+- **Overview & tech stack** — a table covering Payload 3, Next.js 16 / React 19, Bun, SQLite via
+  `@payloadcms/db-sqlite`, Tailwind v4 + typography, Lexical, `react-markdown`, Vitest + RTL,
+  Playwright and the tooling.
+- **Project structure** — an annotated tree of `src/` and `tests/`, plus tables listing every
+  global and collection with its slug and purpose.
+- **Setup & installation** — prerequisites (Bun 1.4+, Node 20.9+), `bun install`,
+  `cp .env.example .env`, and how to generate `PAYLOAD_SECRET` with `openssl rand -hex 32`.
+- **Running the project** — `bun run dev`, the site and `/admin` URLs, the first-run admin user,
+  the note that the home page shows a placeholder until the Bio global has a name, and the
+  production `build` / `start` pair.
+- **Testing guide** — what each suite covers, how E2E seeding snapshots and restores content so a
+  developer's own data survives, `bunx playwright install chromium`, and why both suites run
+  serially.
+- **Database & Payload commands** — `generate:types`, `generate:importmap`, `payload <command>`,
+  the rule about never hand-editing `payload-types.ts`, dev schema push, and `devsafe`.
+- **Code quality** — format/lint/build, and the Tailwind CSS-first configuration note.
+- **Notes for contributors** — pointers to the `.claude` skills and the regenerated CLAUDE.md
+  block.
+
+Also updated **`.env.example`**, which still contained `DATABASE_URL=mongodb://127.0.0.1/...`.
+The README instructs the reader to copy it, so leaving a MongoDB URL there would have made the
+setup instructions actively wrong. It now shows the SQLite URL and how to generate the secret.
+
+### Verification
+
+| Check                                                     | Result                                                                                                                                          |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Markdown formatting (`bunx prettier --check "**/*.md"`)   | All files match Prettier style                                                                                                                  |
+| Every script named in the README exists in `package.json` | All 11 verified (`dev`, `build`, `start`, `devsafe`, `test`, `test:int`, `test:e2e`, `generate:types`, `generate:importmap`, `payload`, `lint`) |
+| Lint                                                      | `bun run lint` — 0 errors, 0 warnings                                                                                                           |
+| Unit / integration                                        | `bun run test:int` — 18 files, 160 tests passed                                                                                                 |
+| E2E                                                       | `bun run test:e2e` — 26 tests passed                                                                                                            |
+| Build                                                     | `bun run build` — success                                                                                                                       |
+
+### Files modified
+
+- `README.md` (rewritten)
+- `.env.example` (MongoDB URL replaced with the SQLite one)
+
+### Known issue left in place (out of scope)
+
+`docker-compose.yml` and `Dockerfile` are still blank-template artefacts: the compose file spins
+up a **MongoDB** service and installs dependencies with **pnpm via corepack**, and the Dockerfile
+only handles npm/yarn/pnpm lockfiles — none of which match this Bun + SQLite project. Neither
+file is referenced by the new README, so following the documentation will not lead anyone into
+them, but they would fail if used. Updating or removing them was outside the scope of Task 19,
+so it is flagged here rather than changed silently.

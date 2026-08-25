@@ -1,67 +1,182 @@
-# Payload Blank Template
+# Personal Website
 
-This template comes configured with the bare minimum to get started on anything you need.
+A personal website, portfolio and blog for a software engineer, built as a single Next.js
+application with Payload CMS providing the admin panel and content API.
 
-## Quick start
+The public site renders live content from the CMS: a bio, a work-experience timeline, portfolio
+projects with image galleries, and a Markdown blog.
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+## Tech stack
 
-## Quick Start - local setup
+| Layer                     | Technology                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------ |
+| CMS                       | [Payload CMS 3](https://payloadcms.com) (admin panel, REST + GraphQL API, Local API) |
+| Framework                 | [Next.js 16](https://nextjs.org) (App Router) with React 19                          |
+| Runtime & package manager | [Bun](https://bun.sh)                                                                |
+| Database                  | SQLite via `@payloadcms/db-sqlite` (libSQL + Drizzle)                                |
+| Styling                   | [Tailwind CSS v4](https://tailwindcss.com) + `@tailwindcss/typography`               |
+| Rich text                 | Lexical (`@payloadcms/richtext-lexical`)                                             |
+| Markdown                  | `react-markdown` + `remark-gfm`                                                      |
+| Unit / integration tests  | [Vitest](https://vitest.dev) + React Testing Library                                 |
+| End-to-end tests          | [Playwright](https://playwright.dev)                                                 |
+| Tooling                   | TypeScript, ESLint, Prettier                                                         |
 
-To spin up this template locally, follow these steps:
+## Project structure
 
-### Clone
+```
+src/
+├── app/
+│   ├── (frontend)/              Public website
+│   │   ├── layout.tsx           Fixed nav + footer, global styles
+│   │   ├── page.tsx             Home: bio → experience → featured projects → latest posts
+│   │   ├── styles.css           Tailwind entrypoint (CSS-first config)
+│   │   ├── projects/
+│   │   │   ├── page.tsx         Project grid with pagination
+│   │   │   └── [slug]/page.tsx  Project detail with image carousel
+│   │   └── blog/
+│   │       ├── page.tsx         Post list with year filter and pagination
+│   │       └── [slug]/page.tsx  Post with rendered Markdown
+│   ├── (payload)/               Payload-generated admin panel and API routes
+│   └── my-route/                Example custom route handler
+├── collections/                 Users, Media, WorkExperience, Skills, Projects, Blog
+├── globals/                     Bio, Footer
+├── components/                  Presentational React components
+├── lib/                         Local API queries and pure helpers
+├── payload.config.ts            Payload configuration
+└── payload-types.ts             Generated types — do not edit by hand
+tests/
+├── int/                         Vitest specs (*.int.spec.ts / .tsx)
+├── e2e/                         Playwright specs (*.e2e.spec.ts)
+└── helpers/                     Shared fixtures, seeding and test utilities
+```
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+### Content model
 
-### Development
+**Globals**
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URL` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+| Global | Slug     | Purpose                                            |
+| ------ | -------- | -------------------------------------------------- |
+| Bio    | `bio`    | Name, subtitle, tagline and a rich text "About me" |
+| Footer | `footer` | Copyright line and social profile links            |
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+**Collections**
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+| Collection      | Slug              | Purpose                                                               |
+| --------------- | ----------------- | --------------------------------------------------------------------- |
+| Users           | `users`           | Admin panel authentication                                            |
+| Media           | `media`           | Uploaded images, stored in `/media`                                   |
+| Work Experience | `work-experience` | Roles in the home page timeline (empty end year renders as "Present") |
+| Skills          | `skills`          | Technology tags, created inline from the Projects form                |
+| Projects        | `projects`        | Portfolio projects with skills, images and a highlight flag           |
+| Blog            | `blog`            | Markdown posts with a publication date                                |
 
-#### Docker (Optional)
+## Setup
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+### Prerequisites
 
-To do so, follow these steps:
+- [Bun](https://bun.sh) 1.4 or newer
+- Node.js 20.9 or newer (Next.js and Payload require it)
 
-- Modify the `MONGODB_URL` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URL` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
+### Installation
 
-## How it works
+```bash
+git clone <repository-url>
+cd code-art-website
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+bun install
 
-### Collections
+cp .env.example .env
+```
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+Then edit `.env`:
 
-- #### Users (Authentication)
+```ini
+DATABASE_URL=file:./code-art-website.db
+PAYLOAD_SECRET=<a long random string>
+```
 
-  Users are auth-enabled collections that have access to the admin panel.
+Generate a secret with `openssl rand -hex 32`. The SQLite file is created automatically on
+first run — there is no separate database server to install.
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/3.x/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
+## Running the project
 
-- #### Media
+```bash
+bun run dev
+```
 
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
+- Website: <http://localhost:3000>
+- Admin panel: <http://localhost:3000/admin>
 
-### Docker
+The first visit to `/admin` prompts you to create an admin user. After that, fill in the **Bio**
+global — until it has a name, the home page shows a placeholder instead of the real content.
 
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
+For a production build:
 
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
+```bash
+bun run build
+bun run start
+```
 
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
+## Testing
 
-## Questions
+```bash
+bun run test:int    # Vitest — unit and integration
+bun run test:e2e    # Playwright — end to end
+bun run test        # both suites
+```
 
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+**Unit / integration tests** (`tests/int/`) run in jsdom and cover two things: Payload schema
+configuration (field types, `required` flags, validators, slug hooks) and React components
+rendered with React Testing Library. Components are presentational and take plain props, so no
+database is needed to test them.
+
+**End-to-end tests** (`tests/e2e/`) start a dev server automatically and drive Chromium. They
+seed content through the Payload Local API before each suite and clean it up afterwards —
+globals are snapshotted and restored, and seeded rows use `test-` prefixed slugs that are
+deleted in `afterAll`, so your own content is left intact.
+
+Playwright browsers are installed with:
+
+```bash
+bunx playwright install chromium
+```
+
+Both suites run serially on purpose (`fileParallelism: false` in `vitest.config.mts`,
+`workers: 1` in `playwright.config.ts`): they share a single SQLite file with the dev server, and
+parallel runs raced Payload's dev schema push. The SQLite adapter is configured with WAL mode and
+a busy timeout for the same reason.
+
+## Database & Payload commands
+
+```bash
+bun run generate:types      # Regenerate src/payload-types.ts from the config
+bun run generate:importmap  # Regenerate the admin import map after adding custom components
+bun run payload <command>   # Any other Payload CLI command
+```
+
+**Run `bun run generate:types` after every change to a collection, global or field.**
+`src/payload-types.ts` is generated and must never be edited by hand.
+
+The schema is applied automatically in development (Payload pushes it to SQLite on startup), so
+no migration step is needed for local work. `bun run devsafe` clears the `.next` cache first if
+the dev server gets into a bad state.
+
+## Code quality
+
+```bash
+bunx prettier --write .   # Format
+bun run lint              # ESLint
+bun run build             # Also type-checks src/ and tests/
+```
+
+Frontend styling is Tailwind utility classes only. Tailwind v4 is configured CSS-first in
+`src/app/(frontend)/styles.css` — there is no `tailwind.config.js`. Every surface supports light
+and dark colour schemes.
+
+## Notes for contributors
+
+Project-specific architecture notes, conventions and gotchas live in
+[`.claude/skills/code-art-website/SKILL.md`](.claude/skills/code-art-website/SKILL.md), with a
+general Payload reference in [`.claude/skills/payload/`](.claude/skills/payload/).
+
+`CLAUDE.md` contains a block that `next dev` regenerates automatically; commit it as-is.

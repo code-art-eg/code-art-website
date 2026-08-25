@@ -607,3 +607,68 @@ backward stepping including wrap-around in both directions, jumping via a dot wi
 with three genuinely uploaded PNG media rows plus its skills, asserts the rendered page,
 metadata, links and badges, drives the carousel in a real browser, asserts an unknown slug
 returns HTTP 404, and deletes every seeded project/skill/media row afterwards.
+
+---
+
+## Task 12: Add Project List Page (`/projects`)
+
+**Status:** Completed
+
+### Summary of changes
+
+- `src/lib/collections.ts`: `getProjects({ page, limit })` returns Payload's `PaginatedDocs`
+  sorted newest-first with relationships populated; `PROJECTS_PER_PAGE` defaults to 9.
+- `src/lib/pagination.ts`: reusable helpers, written so Task 16's year filter can share them.
+  - `parsePositiveInt()` hardens the query params — missing, non-numeric, zero, negative,
+    fractional and repeated (`?page=1&page=2`) values all fall back instead of reaching the DB.
+  - `buildQueryUrl()` builds page links, dropping empty params and omitting `page=1` so the
+    first page has one canonical URL.
+  - `pageWindow()` produces the numbered pages with `null` marking an ellipsis.
+- `src/components/Pagination.tsx`: Previous / numbered pages / Next, rendered as real `<Link>`s
+  so pagination works without JavaScript and every page is shareable. The current page is
+  `aria-current="page"`; the disabled end links are marked `aria-disabled` and removed from the
+  tab order. Accepts a `params` prop to carry extra query params across pages.
+- `src/components/ProjectCard.tsx`: thumbnail (first populated image) or a lettered gradient
+  placeholder exposed as `role="img"` with a descriptive label, title linking to the detail
+  page, summary, skill badges and compact Live / Code links.
+- `src/components/ProjectGrid.tsx`: 1 / 2 / 3 column responsive grid with an empty state.
+- `src/app/(frontend)/projects/page.tsx`: awaits the `searchParams` promise, reads `page` and
+  `limit`, renders the grid, a result count and the pagination control.
+
+**Two defects found and fixed while testing:**
+
+1. `pageWindow()` emitted an ellipsis in place of a single skipped page (`[1, 2, …, 4]`), which
+   is longer than just showing "3". It now renders the page number when the gap is exactly one
+   and reserves the ellipsis for real gaps.
+2. The E2E run surfaced a Next.js 16 warning: with `scroll-behavior: smooth` on `<html>` and no
+   `data-scroll-behavior` attribute, Next 16 no longer suspends smooth scrolling during route
+   transitions — so paginating would have _smooth-scrolled_ the whole page instead of jumping.
+   Added `data-scroll-behavior="smooth"` to `<html>`, which restores instant route transitions
+   while keeping the animated in-page anchor scrolling from Task 8.
+
+### Files modified / created
+
+- `src/app/(frontend)/projects/page.tsx` (created)
+- `src/components/Pagination.tsx`, `ProjectCard.tsx`, `ProjectGrid.tsx` (created)
+- `src/lib/pagination.ts` (created), `src/lib/collections.ts` (modified)
+- `src/app/(frontend)/layout.tsx` (added `data-scroll-behavior`)
+- `tests/helpers/seedContent.ts` (added `seedManyProjects`)
+- `tests/int/pagination.int.spec.tsx`, `tests/int/projectGrid.int.spec.tsx` (created)
+- `tests/e2e/projects-list.e2e.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command            | Result                                  |
+| ------------------ | ------------------ | --------------------------------------- |
+| Unit / integration | `bun run test:int` | 13 files, 114 tests passed              |
+| E2E                | `bun run test:e2e` | 14 tests passed                         |
+| Build              | `bun run build`    | Success — `/projects` listed as dynamic |
+| Lint               | `bun run lint`     | 0 errors, 0 warnings                    |
+
+Unit tests cover every `parsePositiveInt` fallback, `buildQueryUrl` canonicalisation, all
+`pageWindow` shapes (including both the single-gap and real-ellipsis cases), the `Pagination`
+component (hidden for one page, prev/next targets, disabled ends, current-page marking, and
+preserved extra params), and the grid (cards, detail links, thumbnail selection, placeholder,
+optional links, empty state). The E2E spec seeds five projects, clicks through to a detail page,
+then paginates at `limit=2` across all three pages verifying URLs, card counts, the active page
+marker and both disabled end states.

@@ -209,3 +209,35 @@ export const cleanupProjects = async (): Promise<void> => {
     where: { alt: { in: projectFixture.images.map((image) => image.alt) } },
   })
 }
+
+/**
+ * Seeds `count` projects sharing the fixture skills/images, titled
+ * "E2E Project 1..n" with slugs "test-portfolio-project-1..n".
+ */
+export const seedManyProjects = async (
+  count: number,
+  { highlight = false }: { highlight?: boolean } = {},
+): Promise<Project[]> => {
+  const payload = await getClient()
+  const skills = await Promise.all(projectFixture.skills.map((title) => seedSkill(title)))
+  const image = await seedMedia(projectFixture.images[0].alt, projectFixture.images[0].name)
+
+  const created: Project[] = []
+  for (let index = 1; index <= count; index++) {
+    created.push(
+      (await payload.create({
+        collection: 'projects',
+        data: {
+          title: `E2E Project ${index}`,
+          slug: `test-portfolio-project-${index}`,
+          summary: `Summary for E2E project ${index}.`,
+          description: lexicalParagraphs(`Description for E2E project ${index}.`),
+          skills: skills.map((skill) => skill.id),
+          images: index % 2 === 0 ? [image.id] : [],
+          highlight,
+        } as never,
+      })) as Project,
+    )
+  }
+  return created
+}

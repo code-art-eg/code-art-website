@@ -1,3 +1,5 @@
+import type { PaginatedDocs } from 'payload'
+
 import type { Project, WorkExperience } from '@/payload-types'
 
 import { getPayloadClient } from './payload'
@@ -34,4 +36,26 @@ export const getProjectBySlug = async (slug: string): Promise<Project | null> =>
     depth: 1,
   })
   return docs[0] ?? null
+}
+
+export const PROJECTS_PER_PAGE = 9
+
+/**
+ * Paginated projects, newest first, with skills and images populated.
+ */
+export const getProjects = async ({
+  page = 1,
+  limit = PROJECTS_PER_PAGE,
+}: {
+  page?: number
+  limit?: number
+} = {}): Promise<PaginatedDocs<Project>> => {
+  const payload = await getPayloadClient()
+  return payload.find({
+    collection: 'projects',
+    sort: '-createdAt',
+    page,
+    limit,
+    depth: 1,
+  })
 }

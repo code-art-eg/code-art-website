@@ -22,7 +22,9 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   const footer = await getFooter()
 
   return (
-    <html lang="en">
+    // `data-scroll-behavior` lets Next suspend our global smooth scrolling during route
+    // transitions, so navigating pages jumps instantly while in-page anchors still glide.
+    <html lang="en" data-scroll-behavior="smooth">
       <body className="flex min-h-screen flex-col">
         <Nav />
         <main className="flex-1 pt-16">{children}</main>

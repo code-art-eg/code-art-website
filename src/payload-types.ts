@@ -88,9 +88,11 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
+    bio: Bio;
     footer: Footer;
   };
   globalsSelect: {
+    bio: BioSelect<false> | BioSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
   };
   locale: null;
@@ -320,6 +322,47 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Name, role and biography shown at the top of the home page.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bio".
+ */
+export interface Bio {
+  id: number;
+  /**
+   * The author's name, shown as the main heading.
+   */
+  title: string;
+  /**
+   * Example: Software Engineer
+   */
+  subtitle?: string | null;
+  /**
+   * A single-line tagline shown under the subtitle.
+   */
+  shortPhrase?: string | null;
+  /**
+   * Longer biography, rendered as rich text.
+   */
+  aboutMe?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Copyright line and social links shown at the bottom of every page.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -340,6 +383,19 @@ export interface Footer {
     | null;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bio_select".
+ */
+export interface BioSelect<T extends boolean = true> {
+  title?: T;
+  subtitle?: T;
+  shortPhrase?: T;
+  aboutMe?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

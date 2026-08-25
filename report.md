@@ -247,3 +247,41 @@ names), the unseeded fallback, the whitespace-only fallback, and URL-less rows. 
 spec seeds the footer global via the Local API, asserts the footer and each social link are
 visible on the home page, then restores the global's previous value in `afterAll` so the
 developer's own content is never clobbered.
+
+---
+
+## Task 5: Add Bio Global
+
+**Status:** Completed
+
+### Summary of changes
+
+- Created the `bio` global in `src/globals/Bio.ts`:
+  - `title` — required text, the author's name (labelled "Name" in admin).
+  - `subtitle` — optional text, e.g. "Software Engineer".
+  - `shortPhrase` — optional single-line tagline.
+  - `aboutMe` — `richText`, which inherits the Lexical editor configured on the root config.
+  - `access.read: () => true`, matching the Footer global, so the frontend can read it.
+- Registered it in `src/payload.config.ts` as `globals: [Bio, Footer]`.
+- Ran `bun run generate:types`; `src/payload-types.ts` now exports `Bio` / `BioSelect` with the
+  Lexical `aboutMe` node tree typed.
+
+### Files modified / created
+
+- `src/globals/Bio.ts` (created)
+- `src/payload.config.ts` (modified)
+- `src/payload-types.ts` (regenerated)
+- `tests/int/bio.global.int.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command             | Result                   |
+| ------------------ | ------------------- | ------------------------ |
+| Unit / integration | `bun run test:int`  | 4 files, 22 tests passed |
+| Types              | `bunx tsc --noEmit` | Clean                    |
+| Lint               | `bun run lint`      | 0 errors, 0 warnings     |
+
+The spec asserts the slug, public read access, registration in the built config, that `title`
+is required, that `subtitle`/`shortPhrase` are optional text fields, that `aboutMe` is
+`richText`, and that Payload injected the root Lexical editor into it. Rendering (and its E2E
+coverage) follows in Task 6.

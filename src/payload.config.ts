@@ -32,6 +32,13 @@ export default buildConfig({
     client: {
       url: process.env.DATABASE_URL || '',
     },
+    /**
+     * The dev server and the test/seed scripts open the same SQLite file at the same time.
+     * WAL lets readers and writers coexist, and the busy timeout makes the loser of a write
+     * race wait instead of failing immediately with SQLITE_BUSY.
+     */
+    wal: true,
+    busyTimeout: 10_000,
   }),
   sharp,
   plugins: [],

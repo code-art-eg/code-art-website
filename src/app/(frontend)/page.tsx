@@ -2,6 +2,8 @@ import React from 'react'
 import type { Metadata } from 'next'
 
 import { BioSection } from '@/components/BioSection'
+import { ExperienceList } from '@/components/ExperienceList'
+import { getWorkExperience } from '@/lib/collections'
 import { getBio } from '@/lib/globals'
 import { getPayloadClient } from '@/lib/payload'
 
@@ -36,7 +38,7 @@ const EmptyState: React.FC<{ adminRoute: string }> = ({ adminRoute }) => (
 )
 
 export default async function HomePage() {
-  const bio = await getBio()
+  const [bio, experience] = await Promise.all([getBio(), getWorkExperience()])
 
   if (!bio) {
     const payload = await getPayloadClient()
@@ -44,11 +46,14 @@ export default async function HomePage() {
   }
 
   return (
-    <BioSection
-      title={bio.title}
-      subtitle={bio.subtitle}
-      shortPhrase={bio.shortPhrase}
-      aboutMe={bio.aboutMe}
-    />
+    <>
+      <BioSection
+        title={bio.title}
+        subtitle={bio.subtitle}
+        shortPhrase={bio.shortPhrase}
+        aboutMe={bio.aboutMe}
+      />
+      <ExperienceList items={experience} />
+    </>
   )
 }

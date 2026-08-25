@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Footer } from '@/components/Footer'
+import { Nav } from '@/components/Nav'
 import { getFooter } from '@/lib/globals'
 
 import './styles.css'
@@ -23,7 +24,8 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="flex min-h-screen flex-col">
-        <main className="flex-1">{children}</main>
+        <Nav />
+        <main className="flex-1 pt-16">{children}</main>
         <Footer copyright={footer?.copyright} socialLinks={footer?.socialLinks} />
       </body>
     </html>

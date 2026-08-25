@@ -2,7 +2,7 @@ import { getPayload } from 'payload'
 import type { Payload } from 'payload'
 
 import config from '../../src/payload.config.js'
-import type { Bio, Config, Footer } from '../../src/payload-types.js'
+import type { Bio, Config, Footer, WorkExperience } from '../../src/payload-types.js'
 import { lexicalParagraphs } from './lexical'
 
 type GlobalSlug = keyof Config['globals']
@@ -64,3 +64,49 @@ export const bioFixture = {
 export const seedBio = async (): Promise<Bio> => seedGlobal<Bio>('bio', bioFixture)
 
 export const restoreBio = async (): Promise<void> => restoreGlobal('bio')
+
+export const workExperienceFixture = [
+  {
+    jobTitle: 'Principal Software Engineer',
+    company: 'Globex Test',
+    companyUrl: 'https://globex.example.com',
+    location: 'Remote',
+    startYear: 2022,
+    jobDescription: lexicalParagraphs('Leading the platform team and its architecture.'),
+  },
+  {
+    jobTitle: 'Senior Software Engineer',
+    company: 'Initech Test',
+    location: 'Berlin, Germany',
+    startYear: 2017,
+    endYear: 2022,
+    jobDescription: lexicalParagraphs('Built internal tooling used across the company.'),
+  },
+]
+
+/** Removes any work experience rows left over from a previous run, then seeds fresh ones. */
+export const seedWorkExperience = async (): Promise<WorkExperience[]> => {
+  const payload = await getClient()
+  await cleanupWorkExperience()
+
+  const created: WorkExperience[] = []
+  for (const data of workExperienceFixture) {
+    created.push(
+      (await payload.create({
+        collection: 'work-experience',
+        data: data as never,
+      })) as WorkExperience,
+    )
+  }
+  return created
+}
+
+export const cleanupWorkExperience = async (): Promise<void> => {
+  const payload = await getClient()
+  await payload.delete({
+    collection: 'work-experience',
+    where: {
+      company: { in: workExperienceFixture.map((item) => item.company) },
+    },
+  })
+}

@@ -391,3 +391,72 @@ The spec covers the slug, public read access, config registration, `useAsTitle`/
 every field's type and `required` flag, and both validators — valid years, fractional years,
 2/5-digit typos, empty `endYear` meaning "Present", and the URL rules. Rendering and its E2E
 coverage land in Task 8.
+
+---
+
+## Task 8: Display Work Experience on Home Page with Animated Nav Menu
+
+**Status:** Completed
+
+### Summary of changes
+
+- `src/lib/collections.ts`: `getWorkExperience()` queries the collection sorted
+  `['-startYear', '-endYear']`, so current roles (no end year) sit above finished roles that
+  started the same year. Returns `[]` on failure rather than breaking the page.
+- `src/lib/navigation.ts`: the menu is data-driven (`navItems`) so Tasks 13 and 17 can extend it.
+  `navHref()` returns a bare `#id` on the home page (letting the browser smooth-scroll) and
+  `/#id` from any other route, so the menu keeps working on `/projects` and `/blog`.
+- `src/components/Nav.tsx` (client component): fixed, full-width, blurred translucent bar.
+  - Click handler calls `scrollIntoView({ behavior: 'smooth' })` and syncs the hash with
+    `history.replaceState`, degrading to `behavior: 'auto'` when the visitor has
+    `prefers-reduced-motion: reduce`.
+  - An `IntersectionObserver` (with a `-20% 0px -70% 0px` root margin so the "current" section is
+    the one near the top of the viewport) tracks which section is on screen and marks that link
+    with `aria-current="true"`, animated via a scaling underline. The observer is guarded for
+    environments without `IntersectionObserver` and disconnected on unmount.
+- `src/components/ExperienceList.tsx`: presentational vertical timeline with a `<ol>`/`<li>`
+  structure, dot markers, the company optionally linked, location, the year range and the
+  Lexical description. Exported `formatYearRange()` handles "2019 — Present", closed ranges and
+  single-year roles. Renders `null` when there is nothing to show. Section id `experience`.
+- `src/app/(frontend)/layout.tsx`: renders `<Nav />` and adds `pt-16` to `<main>` so content
+  clears the fixed bar.
+- `src/app/(frontend)/page.tsx`: fetches the bio and the experience list concurrently with
+  `Promise.all` and renders the timeline under the bio.
+
+**E2E infrastructure fix (SQLITE_BUSY).** Even with `workers: 1`, seeding kept failing with
+`LibsqlError: SQLITE_BUSY: database is locked` — the Playwright process and the Next dev server
+hold the same SQLite file open, and `busyTimeout` defaults to `0`, so the loser of any write
+race fails instantly instead of waiting. Configured the adapter with `wal: true` (readers and
+writers no longer block each other) and `busyTimeout: 10_000`. This is the adapter's documented
+mechanism for exactly this situation, and it benefits `bun run dev` alongside `bun run test:int`
+too. Added the `-wal` / `-shm` sidecar files to `.gitignore`.
+
+### Files modified / created
+
+- `src/components/Nav.tsx`, `src/components/ExperienceList.tsx` (created)
+- `src/lib/collections.ts`, `src/lib/navigation.ts` (created)
+- `src/app/(frontend)/layout.tsx`, `src/app/(frontend)/page.tsx` (modified)
+- `src/payload.config.ts` (WAL + busy timeout)
+- `.gitignore` (SQLite sidecar files)
+- `tests/helpers/fixtures.ts` (created — `makeExperience`, `richText`)
+- `tests/helpers/seedContent.ts` (work experience seed/cleanup)
+- `tests/int/experienceList.int.spec.tsx`, `tests/int/nav.int.spec.tsx` (created)
+- `tests/e2e/experience.e2e.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command            | Result                                          |
+| ------------------ | ------------------ | ----------------------------------------------- |
+| Unit / integration | `bun run test:int` | 8 files, 59 tests passed                        |
+| E2E                | `bun run test:e2e` | 9 tests passed (run twice to confirm stability) |
+| Build              | `bun run build`    | Success                                         |
+| Lint               | `bun run lint`     | 0 errors, 0 warnings                            |
+
+Unit tests cover `formatYearRange` (all three shapes), the timeline fields, linked vs. plain
+company, omitted location, preserved order, the `#experience` anchor and the empty state; and
+for the nav: link hrefs on and off the home page, smooth scrolling, the reduced-motion
+fallback, active-section highlighting through a fake `IntersectionObserver`, observer teardown,
+and that observation is skipped off the home page. The E2E spec seeds two roles, asserts the
+timeline renders newest-first with the right company link and year ranges, then clicks each
+menu item and asserts the target section is in the viewport, `window.scrollY` moved, the active
+link is marked, and the fixed menu is still visible after scrolling.

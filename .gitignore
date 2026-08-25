@@ -49,3 +49,6 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 code-art-website.db
+# SQLite WAL sidecar files
+code-art-website.db-shm
+code-art-website.db-wal

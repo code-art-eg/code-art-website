@@ -168,3 +168,82 @@ The new spec covers the slug, public read access, registration in the built conf
 copyright field type, the array shape, the exact platform option list, both `required` flags,
 and every branch of the URL validator. No E2E test applies yet — the footer is not rendered
 until Task 4.
+
+---
+
+## Task 4: Update Site Layout to Display Footer
+
+**Status:** Completed
+
+### Summary of changes
+
+**Tailwind CSS brought online.** The Tailwind v4 packages were already installed but nothing
+was wired up — there was no PostCSS config and `styles.css` was the plain-CSS template
+stylesheet. Added `postcss.config.mjs` registering `@tailwindcss/postcss` and replaced
+`src/app/(frontend)/styles.css` with a Tailwind entrypoint (`@import 'tailwindcss'`) that also
+sets the font tokens, enables `scroll-behavior: smooth` with `scroll-padding-top` for the fixed
+nav added in Task 8, and honours `prefers-reduced-motion`. Verified the generated bundle
+actually contains the utilities (`.mt-16{margin-top:calc(var(--spacing) * 16)}`).
+
+**Footer.**
+
+- `src/components/SocialIcon.tsx` — inline `currentColor` brand glyphs for all five platforms
+  plus a `platformLabels` map. Icons are `aria-hidden`; the accessible name lives on the link.
+- `src/components/Footer.tsx` — purely presentational, takes `copyright` / `socialLinks` props
+  (typed from the generated `Footer` interface) so it is trivially unit-testable. Responsive
+  (stacked on mobile, split row from `sm:` up), dark-mode aware, with visible focus rings.
+  Falls back to `© <current year> All rights reserved.` when the global is unseeded or the
+  copyright is blank/whitespace, and drops link rows with an empty URL.
+- `src/lib/payload.ts` — shared `getPayloadClient()` Local API helper.
+- `src/lib/globals.ts` — `getFooter()`, which returns `null` if the global cannot be read so an
+  unseeded database renders defaults instead of erroring.
+- `src/app/(frontend)/layout.tsx` — fetches the footer via the Local API and renders `<Footer />`
+  below a `flex-1` `<main>`, so the footer sits at the bottom on short pages.
+
+**Rendering mode.** With the template's `headers()` call gone, Next prerendered `/` as static
+content, which would have baked CMS content into the build. Added
+`export const dynamic = 'force-dynamic'` to the frontend layout — route segment config in a
+layout applies to the whole subtree, so every frontend route now reads live content.
+
+**Home page** was restyled with Tailwind as a minimal placeholder (the template markup depended
+on the deleted CSS). Tasks 6, 8, 13 and 17 replace it with real content.
+
+**Test harness.** Added `@testing-library/jest-dom` and `@testing-library/user-event`, widened
+the Vitest `include` glob to `*.int.spec.{ts,tsx}` so RTL component specs are picked up, and
+registered an explicit `afterEach(cleanup)` in `vitest.setup.ts` — with `globals: false`, RTL
+cannot auto-register cleanup and renders were leaking between tests.
+
+**Bug fixed from Task 3.** `bun run build` type-checks the test folder and caught that
+`NamedField` in `tests/helpers/payloadFields.ts` included `UIField`, which has no `required`
+property. Narrowed the type with `Exclude<…, UIField>` and made the `hasName` guard check
+`field.type !== 'ui'` so the predicate is actually sound.
+
+### Files modified / created
+
+- `postcss.config.mjs` (created)
+- `src/app/(frontend)/styles.css` (rewritten for Tailwind)
+- `src/app/(frontend)/layout.tsx` (modified)
+- `src/app/(frontend)/page.tsx` (restyled placeholder)
+- `src/components/Footer.tsx`, `src/components/SocialIcon.tsx` (created)
+- `src/lib/payload.ts`, `src/lib/globals.ts` (created)
+- `vitest.config.mts`, `vitest.setup.ts`, `package.json`, `bun.lock` (modified)
+- `tests/helpers/payloadFields.ts` (fixed typing)
+- `tests/helpers/seedContent.ts` (created)
+- `tests/int/footer.component.int.spec.tsx` (created)
+- `tests/e2e/footer.e2e.spec.ts` (created)
+- `tests/e2e/frontend.e2e.spec.ts` (updated for the new title/heading)
+
+### Test verification
+
+| Check              | Command            | Result                                       |
+| ------------------ | ------------------ | -------------------------------------------- |
+| Unit / integration | `bun run test:int` | 3 files, 14 tests passed                     |
+| E2E                | `bun run test:e2e` | 5 tests passed                               |
+| Build              | `bun run build`    | Success, `/` correctly listed as dynamic (ƒ) |
+| Lint               | `bun run lint`     | 0 errors, 0 warnings                         |
+
+Unit tests cover the copyright, all three seeded social links (href/target/rel and accessible
+names), the unseeded fallback, the whitespace-only fallback, and URL-less rows. The new E2E
+spec seeds the footer global via the Local API, asserts the footer and each social link are
+visible on the home page, then restores the global's previous value in `afterAll` so the
+developer's own content is never clobbered.

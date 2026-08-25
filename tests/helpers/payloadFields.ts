@@ -1,8 +1,9 @@
-import type { ArrayField, Field, SelectField } from 'payload'
+import type { ArrayField, Field, SelectField, UIField } from 'payload'
 
-type NamedField = Extract<Field, { name: string }>
+/** Every field kind that carries a `name` — minus `ui`, which has no data properties. */
+type NamedField = Exclude<Extract<Field, { name: string }>, UIField>
 
-const hasName = (field: Field): field is NamedField => 'name' in field
+const hasName = (field: Field): field is NamedField => 'name' in field && field.type !== 'ui'
 
 /**
  * Finds a top-level field by name inside a collection/global field list.

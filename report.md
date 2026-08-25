@@ -125,3 +125,46 @@ Payload 3.88 / Next 16 / React 19 alignment.
 
 E2E was run beyond the task's stated requirements to confirm the `pnpm dev` → `bun run dev`
 webServer switch works end to end.
+
+---
+
+## Task 3: Add Footer Global
+
+**Status:** Completed
+
+### Summary of changes
+
+- Created the `footer` global in `src/globals/Footer.ts` with:
+  - `copyright` — text field for the copyright line.
+  - `socialLinks` — array field, each row holding a required `platform` select
+    (`GitHub`, `LinkedIn`, `Facebook`, `Twitter`, `X`, stored as lowercase values so the
+    frontend can map them straight to icons) and a required `url` text field.
+  - A `validate` function on `url` that rejects blanks, relative URLs and non-`http(s)`
+    protocols with actionable messages.
+  - `access.read: () => true` so the frontend and REST API can read the footer without auth.
+- Registered the global under `globals: [Footer]` in `src/payload.config.ts`.
+- Ran `bun run generate:types`; `src/payload-types.ts` now exports the `Footer` and
+  `FooterSelect` interfaces and lists `footer` in `Config['globals']`.
+- Added `tests/helpers/payloadFields.ts`, small typed helpers (`getField`, `getSubField`,
+  `optionValues`) for asserting on Payload field configs — reused by later schema tasks.
+
+### Files modified / created
+
+- `src/globals/Footer.ts` (created)
+- `src/payload.config.ts` (modified)
+- `src/payload-types.ts` (regenerated)
+- `tests/helpers/payloadFields.ts` (created)
+- `tests/int/footer.global.int.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command                   | Result                  |
+| ------------------ | ------------------------- | ----------------------- |
+| Unit / integration | `bun run test:int`        | 2 files, 9 tests passed |
+| Lint               | `bun run lint`            | 0 errors, 0 warnings    |
+| Format             | `bunx prettier --write .` | Clean                   |
+
+The new spec covers the slug, public read access, registration in the built config, the
+copyright field type, the array shape, the exact platform option list, both `required` flags,
+and every branch of the URL validator. No E2E test applies yet — the footer is not rendered
+until Task 4.

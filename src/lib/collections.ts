@@ -2,6 +2,7 @@ import type { PaginatedDocs } from 'payload'
 
 import type { Blog, Project, WorkExperience } from '@/payload-types'
 
+import { postYear } from './date'
 import { getPayloadClient } from './payload'
 
 /**
@@ -101,4 +102,74 @@ export const getPostBySlug = async (slug: string): Promise<Blog | null> => {
     depth: 0,
   })
   return docs[0] ?? null
+}
+
+export const BLOG_POSTS_PER_PAGE = 10
+
+/** UTC bounds of a calendar year, as ISO strings for Payload date queries. */
+export const yearRange = (year: number): { from: string; to: string } => ({
+  from: new Date(Date.UTC(year, 0, 1)).toISOString(),
+  to: new Date(Date.UTC(year + 1, 0, 1)).toISOString(),
+})
+
+/**
+ * Paginated blog posts, newest first, optionally restricted to one publication year.
+ */
+export const getPosts = async ({
+  page = 1,
+  limit = BLOG_POSTS_PER_PAGE,
+  year,
+}: {
+  page?: number
+  limit?: number
+  year?: number | null
+} = {}): Promise<PaginatedDocs<Blog>> => {
+  const payload = await getPayloadClient()
+  const { from, to } = year ? yearRange(year) : { from: undefined, to: undefined }
+
+  return payload.find({
+    collection: 'blog',
+    where: year ? { publishedAt: { greater_than_equal: from, less_than: to } } : {},
+    sort: '-publishedAt',
+    page,
+    limit,
+    depth: 0,
+  })
+}
+
+/**
+ * Every publication year that has at least one post, newest first.
+ * Only `publishedAt` is selected, so this stays cheap as the blog grows.
+ */
+export const getPostYears = async (): Promise<number[]> => {
+  try {
+    const payload = await getPayloadClient()
+    const { docs } = await payload.find({
+      collection: 'blog',
+      sort: '-publishedAt',
+      limit: 0,
+      depth: 0,
+      select: { publishedAt: true },
+    })
+
+    const years = new Set<number>()
+    for (const doc of docs) {
+      const year = postYear(doc.publishedAt)
+      if (year !== null) years.add(year)
+    }
+
+    return [...years].sort((a, b) => b - a)
+  } catch {
+    return []
+  }
+}
+
+/** The 5 most recent posts, for the home page. */
+export const getLatestPosts = async (limit = 5): Promise<Blog[]> => {
+  try {
+    const { docs } = await getPosts({ page: 1, limit })
+    return docs
+  } catch {
+    return []
+  }
 }

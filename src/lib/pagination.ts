@@ -59,3 +59,20 @@ export const pageWindow = (current: number, totalPages: number, span = 1): (numb
 
   return result
 }
+
+/**
+ * Reads a `?year=YYYY` query param, returning `null` for "All" or anything
+ * that is not a plausible four-digit year.
+ */
+export const parseYearParam = (
+  value: string | string[] | undefined,
+  allowedYears: number[],
+): number | null => {
+  const raw = Array.isArray(value) ? value[0] : value
+  if (!raw) return null
+
+  const parsed = Number(raw)
+  if (!Number.isInteger(parsed)) return null
+
+  return allowedYears.includes(parsed) ? parsed : null
+}

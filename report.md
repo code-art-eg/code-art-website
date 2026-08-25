@@ -821,3 +821,55 @@ the fact that raw `<script>` HTML is escaped rather than executed, and the post 
 including the `<time datetime>` attribute and the back link. The E2E spec seeds a post, asserts
 the Markdown really became HTML elements (and that the raw `#` source is nowhere on the page),
 checks the formatted date, title metadata and back link, and asserts an unknown slug 404s.
+
+---
+
+## Task 16: Add Blog List Page (`/blog`) with Year Filter & Pagination
+
+**Status:** Completed
+
+### Summary of changes
+
+- `src/lib/collections.ts`:
+  - `yearRange(year)` returns the UTC bounds of a calendar year as ISO strings.
+  - `getPosts({ page, limit, year })` paginates newest-first, filtering with
+    `publishedAt >= Jan 1 && publishedAt < Jan 1 next year` — a half-open range, so a post
+    published on 31 December at 23:59 UTC lands in the right year and none can be double-counted.
+  - `getPostYears()` collects the distinct publication years newest-first, using
+    `select: { publishedAt: true }` so only that one column is fetched.
+  - `getLatestPosts()` added here ready for Task 17.
+- `src/lib/pagination.ts`: `parseYearParam()` accepts a year **only if it appears in the list of
+  years that actually have posts**, so `?year=1999`, `?year=abc` and repeated params all fall
+  back to "All" rather than rendering an empty page for a year that never existed.
+- `src/components/YearFilter.tsx`: "All / 2026 / 2025 / …" pill links in a labelled `<nav>`, with
+  the active one marked `aria-current`. Selecting a year drops any `page` param, since page 3 of
+  "All" rarely exists within a single year.
+- `src/components/BlogList.tsx`: post list with title link, machine-readable `<time>`, formatted
+  date and summary, plus a customisable empty state.
+- `src/app/(frontend)/blog/page.tsx`: reads `page`, `limit` and `year`, renders the filter, the
+  list (with a year-specific empty message) and pagination that carries the `year` param through
+  via the `params` prop added in Task 12.
+
+### Files modified / created
+
+- `src/app/(frontend)/blog/page.tsx` (created)
+- `src/components/BlogList.tsx`, `src/components/YearFilter.tsx` (created)
+- `src/lib/collections.ts`, `src/lib/pagination.ts` (modified)
+- `tests/int/blogList.int.spec.tsx` (created)
+- `tests/e2e/blog-list.e2e.spec.ts` (created)
+
+### Test verification
+
+| Check              | Command            | Result                     |
+| ------------------ | ------------------ | -------------------------- |
+| Unit / integration | `bun run test:int` | 17 files, 154 tests passed |
+| E2E                | `bun run test:e2e` | 23 tests passed            |
+| Lint               | `bun run lint`     | 0 errors, 0 warnings       |
+
+Unit tests cover the UTC year bounds, every `parseYearParam` branch (absent, valid, junk,
+fractional, a year with no posts, repeated params), the post list rendering and ordering, both
+empty states, and the year filter (link set, hrefs, `aria-current` on All vs. a selected year,
+and rendering nothing with no posts). The E2E spec seeds four posts across 2024–2026, asserts
+newest-first ordering, filters to 2026 and checks the 2025 post disappears, returns to All, then
+paginates at `limit=1` within the 2026 filter verifying the year survives the page change and
+that Next is disabled on the last page of the filtered set.

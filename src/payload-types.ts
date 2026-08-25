@@ -269,7 +269,7 @@ export interface Project {
    */
   githubLink?: string | null;
   /**
-   * Start typing to search; new skills can be created inline.
+   * Type a skill and pick it from the list, or press Enter to add one that does not exist yet.
    */
   skills: (number | Skill)[];
   /**

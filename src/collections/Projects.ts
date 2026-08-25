@@ -80,10 +80,14 @@ export const Projects: CollectionConfig = {
       hasMany: true,
       required: true,
       admin: {
-        description: 'Start typing to search; new skills can be created inline.',
-        allowCreate: true,
-        allowEdit: true,
+        description:
+          'Type a skill and pick it from the list, or press Enter to add one that does not exist yet.',
         isSortable: true,
+        components: {
+          // A tag-style picker that creates missing skills inline, instead of the stock
+          // relationship field's "+" button and document drawer.
+          Field: '@/components/admin/SkillsTagInput#SkillsTagInput',
+        },
       },
     },
     {

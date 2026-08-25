@@ -109,14 +109,24 @@ describe('Projects collection', () => {
   })
 
   describe('relationships', () => {
-    it('requires at least one skill and allows inline creation', () => {
+    it('requires at least one skill', () => {
       const skills = getField(Projects.fields, 'skills') as RelationshipField
 
       expect(skills.type).toBe('relationship')
       expect(skills.relationTo).toBe('skills')
       expect(skills.hasMany).toBe(true)
       expect(skills.required).toBe(true)
-      expect(skills.admin?.allowCreate).toBe(true)
+      expect(skills.admin?.isSortable).toBe(true)
+    })
+
+    it('edits skills through the tag input rather than the stock relationship field', () => {
+      // The tag input creates missing skills as the editor types; losing this component
+      // silently puts the "+" document drawer back.
+      const skills = getField(Projects.fields, 'skills') as RelationshipField
+
+      expect(skills.admin?.components?.Field).toBe(
+        '@/components/admin/SkillsTagInput#SkillsTagInput',
+      )
     })
 
     it('allows optional media images', () => {

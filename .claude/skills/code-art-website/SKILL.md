@@ -50,7 +50,7 @@ Registered in `src/payload.config.ts`. Everything readable by the frontend sets
 | `Users`          | `users`           | Auth collection backing the admin panel                                                                                                                |
 | `Media`          | `media`           | Uploads; files land in `/media` (gitignored)                                                                                                           |
 | `WorkExperience` | `work-experience` | `jobTitle`, `company`, `companyUrl`, `location`, `startYear`, `endYear` (empty = "Present"), `jobDescription` (rich text). `defaultSort: '-startYear'` |
-| `Skills`         | `skills`          | `title` only — required, unique, indexed. Created inline from the Projects form                                                                        |
+| `Skills`         | `skills`          | `title` only — required, unique, indexed. Created inline from the Projects skills tag input                                                            |
 | `Projects`       | `projects`        | `title`, `slug`, `summary`, `description` (rich text), `externalLink`, `githubLink`, `skills[]` (required), `images[]` → media, `highlight`            |
 | `Blog`           | `blog`            | `title`, `slug`, `summary`, `content` (**Markdown** in a `code` field), `publishedAt` (indexed). `defaultSort: '-publishedAt'`                         |
 
@@ -70,6 +70,7 @@ src/
   app/(payload)/           Payload-generated admin + REST/GraphQL routes. Do not hand-edit.
   collections/, globals/   Payload schema
   components/              Presentational React components
+  components/admin/        Client components the Payload admin renders (custom fields)
   lib/                     Local API queries and pure helpers
   payload-types.ts         GENERATED — never edit by hand
 ```
@@ -149,6 +150,24 @@ There is no `tailwind.config.js`; PostCSS is wired up in `postcss.config.mjs`.
   developer's own database.
 - The SQLite adapter sets `wal: true` and `busyTimeout: 10_000` in `src/payload.config.ts` so the
   dev server and test process can hold the file at once. Do not remove them.
+
+### Admin customisations
+
+`Projects.skills` renders through `src/components/admin/SkillsTagInput.tsx` instead of the stock
+relationship field: an editor types a skill name and either picks the one that exists or presses
+Enter to create it inline, with no "+" button or document drawer. The field still stores an array
+of `skills` ids, so the API and the frontend are unaffected.
+
+- The selection logic lives in `src/lib/skillOptions.ts` (`resolveSkillSelection` and friends) so
+  it can be unit tested without rendering the admin panel; matching is case- and
+  whitespace-insensitive, which is what stops "react"/"React" both being created in a collection
+  whose `title` is unique.
+- Payload's creatable `ReactSelect` probes the field's `filterOption` with a `null` option when
+  Enter is pressed, to decide whether to turn the raw text into a value. The component declines
+  that probe on purpose: it hands Enter back to react-select so a partial name selects the
+  highlighted skill rather than creating a skill with the partial name.
+- A custom `Field` component must be in the import map like any rich text editor —
+  `bun run generate:importmap`, and `tests/int/importMap.int.spec.ts` guards it.
 
 ## Gotchas
 

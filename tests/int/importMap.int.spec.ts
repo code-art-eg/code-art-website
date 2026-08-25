@@ -69,6 +69,26 @@ const richTextComponentPaths = (sanitized: SanitizedConfig): string[] => {
   return [...new Set(paths)]
 }
 
+/** Every custom field component the config points at, e.g. the Projects skills tag input. */
+const customFieldComponentPaths = (sanitized: SanitizedConfig): string[] => {
+  const fieldLists = [
+    ...sanitized.collections.map((collection) => collection.fields),
+    ...sanitized.globals.map((global) => global.fields),
+  ]
+
+  const paths = fieldLists
+    .flatMap((fields) => allFields(fields))
+    .flatMap((field) => {
+      const components = 'admin' in field ? field.admin?.components : undefined
+      return Object.values(components ?? {}).map((component) =>
+        componentPath(component as PayloadComponent),
+      )
+    })
+    .filter((value): value is string => typeof value === 'string')
+
+  return [...new Set(paths)]
+}
+
 let sanitized: SanitizedConfig
 let importMapSource: string
 
@@ -83,6 +103,19 @@ describe('admin import map', () => {
 
     // Guards the guard: if this is empty the assertion below would pass vacuously.
     expect(required.length).toBeGreaterThan(0)
+
+    const missing = required.filter((componentPath) => !importMapSource.includes(componentPath))
+
+    expect(missing, `Missing from importMap.js — run "bun run generate:importmap".`).toStrictEqual(
+      [],
+    )
+  })
+
+  it('covers every custom field component the config references', () => {
+    const required = customFieldComponentPaths(sanitized)
+
+    // Guards the guard: the Projects skills field is one of these.
+    expect(required).toContain('@/components/admin/SkillsTagInput#SkillsTagInput')
 
     const missing = required.filter((componentPath) => !importMapSource.includes(componentPath))
 

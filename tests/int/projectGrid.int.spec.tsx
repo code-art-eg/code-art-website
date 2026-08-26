@@ -55,6 +55,12 @@ describe('<ProjectGrid />', () => {
     expect(screen.queryByAltText('Second shot')).not.toBeInTheDocument()
   })
 
+  it('fits the thumbnail inside its frame instead of cropping it', () => {
+    render(<ProjectGrid projects={[makeProject({ images: [makeMedia({ alt: 'Cover shot' })] })]} />)
+
+    expect(screen.getByAltText('Cover shot')).toHaveClass('object-contain')
+  })
+
   it('falls back to a placeholder when the project has no images', () => {
     render(<ProjectGrid projects={[makeProject({ title: 'Weather App', images: [] })]} />)
 

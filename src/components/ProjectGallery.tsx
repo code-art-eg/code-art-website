@@ -36,7 +36,7 @@ export const ProjectGallery: React.FC<ProjectGalleryProps> = ({ images, title })
             alt={current.alt || title}
             fill
             sizes="(max-width: 768px) 100vw, 768px"
-            className="object-cover"
+            className="object-contain"
             priority={index === 0}
           />
         )}

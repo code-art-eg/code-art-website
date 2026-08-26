@@ -77,6 +77,15 @@ describe('<ProjectDetail />', () => {
       expect(screen.queryByRole('button', { name: 'Next image' })).not.toBeInTheDocument()
     })
 
+    it('fits each image inside the frame instead of cropping it', async () => {
+      render(<ProjectDetail project={makeProject({ images })} />)
+
+      expect(screen.getByAltText('Home screen')).toHaveClass('object-contain')
+
+      await userEvent.click(screen.getByRole('button', { name: 'Next image' }))
+      expect(screen.getByAltText('Settings screen')).toHaveClass('object-contain')
+    })
+
     it('advances and rewinds through the images, wrapping around', async () => {
       render(<ProjectDetail project={makeProject({ images })} />)
 

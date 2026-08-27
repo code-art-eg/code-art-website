@@ -122,6 +122,29 @@ bun run build
 bun run start
 ```
 
+### Static export
+
+```bash
+bun run build:static
+```
+
+Writes a self-contained static copy of the site to `out/`: HTML, CSS, JavaScript and the
+uploaded images only — no database, no admin panel and no API routes. Nothing in the output
+needs a server, so it can be dropped onto any static host.
+
+There is nothing for Next to export directly, because every page reads live content from
+Payload. Instead the script builds the app into a throwaway `.next-static` directory, starts it,
+crawls every page the site links to and saves the HTML it gets back, along with the assets and
+uploads those pages reference. Whatever the CMS holds at that moment is baked in, so re-run it
+after editing content.
+
+Static hosts ignore the query string, so the paginated and filtered list pages become real
+paths — `/blog?year=2026&page=2` is written to `out/blog/year/2026/page/2/index.html`, and the
+links in the exported HTML point there. `out/404.html` holds the not-found page.
+
+`STATIC_PORT` (default `4321`) changes the port the crawl runs against, and `STATIC_OUT_DIR`
+the output directory.
+
 ## Testing
 
 ```bash

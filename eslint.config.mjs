@@ -26,6 +26,8 @@ const eslintConfig = [
   {
     ignores: [
       '.next/',
+      '.next-static/',
+      'out/',
       'playwright-report/',
       'test-results/',
       'src/app/(payload)/admin/importMap.js',

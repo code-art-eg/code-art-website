@@ -15,6 +15,7 @@ in one app, on Bun, SQLite and Tailwind CSS v4.
 | Install dependencies                | `bun install`                |
 | Dev server (frontend + `/admin`)    | `bun run dev`                |
 | Production build (also type-checks) | `bun run build`              |
+| Static export into `out/`           | `bun run build:static`       |
 | Regenerate `src/payload-types.ts`   | `bun run generate:types`     |
 | Regenerate the admin import map     | `bun run generate:importmap` |
 | Unit / integration tests            | `bun run test:int`           |
@@ -83,6 +84,20 @@ src/
   lib/                     Local API queries and pure helpers
   payload-types.ts         GENERATED — never edit by hand
 ```
+
+### The static export
+
+`bun run build:static` (`scripts/build-static.ts`) builds into `.next-static`, serves that
+build, crawls every page the site links to and writes the HTML plus the assets and uploads it
+references into `out/`. The admin panel and the API are never crawled, so no server code, no
+database and no admin bundle reach the output.
+
+`STATIC_EXPORT=true` is what switches `next.config.ts` to that build's `distDir` and turns off
+image optimisation — `/_next/image?...` has no optimiser to answer it on a static host. For the
+same reason the crawler rewrites query-string URLs into paths (`/blog?page=2` ->
+`/blog/page/2/`); the mapping and the HTML rewriting live in `scripts/staticSite.ts` and are
+unit tested in `tests/int/staticSite.int.spec.ts`. **A new query param on a list page needs a
+place in `PARAM_ORDER` there**, or two URLs that differ only by it collide in one file.
 
 ### The data-fetching rule
 

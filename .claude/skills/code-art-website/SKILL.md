@@ -38,21 +38,30 @@ Registered in `src/payload.config.ts`. Everything readable by the frontend sets
 
 ### Globals (`src/globals/`)
 
-| Global   | Slug     | Fields                                                                                           |
-| -------- | -------- | ------------------------------------------------------------------------------------------------ |
-| `Bio`    | `bio`    | `title` (required, the name), `subtitle`, `shortPhrase`, `aboutMe` (Lexical rich text)           |
-| `Footer` | `footer` | `copyright`, `socialLinks[]` → `platform` (`github`/`linkedin`/`facebook`/`twitter`/`x`) + `url` |
+| Global                | Slug                    | Fields                                                                                           |
+| --------------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| `Bio`                 | `bio`                   | `title` (required, the name), `subtitle`, `shortPhrase`, `aboutMe` (Lexical rich text)           |
+| `Footer`              | `footer`                | `copyright`, `socialLinks[]` → `platform` (`github`/`linkedin`/`facebook`/`twitter`/`x`) + `url` |
+| `HomePageProjects`    | `home-page-projects`    | `projects[]` → sortable relationship to `projects`                                               |
+| `ProjectPageProjects` | `project-page-projects` | `projects[]` → sortable relationship to `projects`                                               |
+
+**The two project globals are curations, not filters on top of a default.** Each page renders
+exactly the projects its global lists, in the order the editor dragged them into — the home page
+from `home-page-projects`, `/projects` from `project-page-projects`. An empty global means that
+page shows nothing: the home section disappears entirely (link included) and `/projects` renders
+its empty state. There is no cap on how many the home page shows, and `Projects.highlight` no
+longer drives anything on the frontend.
 
 ### Collections (`src/collections/`)
 
-| Collection       | Slug              | Notes                                                                                                                                                  |
-| ---------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Users`          | `users`           | Auth collection backing the admin panel                                                                                                                |
-| `Media`          | `media`           | Uploads; files land in `/media` (gitignored)                                                                                                           |
-| `WorkExperience` | `work-experience` | `jobTitle`, `company`, `companyUrl`, `location`, `startYear`, `endYear` (empty = "Present"), `jobDescription` (rich text). `defaultSort: '-startYear'` |
-| `Skills`         | `skills`          | `title` only — required, unique, indexed. Created inline from the Projects skills tag input                                                            |
-| `Projects`       | `projects`        | `title`, `slug`, `summary`, `description` (rich text), `externalLink`, `githubLink`, `skills[]` (required), `images[]` → media, `highlight`            |
-| `Blog`           | `blog`            | `title`, `slug`, `summary`, `content` (**Markdown** in a `code` field), `publishedAt` (indexed). `defaultSort: '-publishedAt'`                         |
+| Collection       | Slug              | Notes                                                                                                                                                             |
+| ---------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Users`          | `users`           | Auth collection backing the admin panel                                                                                                                           |
+| `Media`          | `media`           | Uploads; files land in `/media` (gitignored)                                                                                                                      |
+| `WorkExperience` | `work-experience` | `jobTitle`, `company`, `companyUrl`, `location`, `startYear`, `endYear` (empty = "Present"), `jobDescription` (rich text). `defaultSort: '-startYear'`            |
+| `Skills`         | `skills`          | `title` only — required, unique, indexed. Created inline from the Projects skills tag input                                                                       |
+| `Projects`       | `projects`        | `title`, `slug`, `summary`, `description` (rich text), `externalLink`, `githubLink`, `skills[]` (required), `images[]` → media, `highlight` (editorial flag only) |
+| `Blog`           | `blog`            | `title`, `slug`, `summary`, `content` (**Markdown** in a `code` field), `publishedAt` (indexed). `defaultSort: '-publishedAt'`                                    |
 
 `Projects.slug` and `Blog.slug` are required, unique and indexed, and a `beforeValidate` hook
 derives them from the title when blank (and normalises hand-typed values) via `slugify()`.
@@ -82,11 +91,16 @@ from `src/lib/`, then pass plain props into presentational components. Those com
 Payload client and do no I/O, which is what makes them unit-testable with React Testing Library.
 
 - `src/lib/payload.ts` — `getPayloadClient()`, the shared Local API client.
-- `src/lib/globals.ts` — `getFooter()`, `getBio()`. Return `null` when unseeded so pages can fall
-  back instead of crashing.
+- `src/lib/globals.ts` — `getFooter()`, `getBio()`, `getHomePageProjects()`,
+  `getProjectPageProjects()`. Return `null` when unseeded so pages can fall back instead of
+  crashing.
 - `src/lib/collections.ts` — `getWorkExperience()`, `getProjects()`, `getProjectBySlug()`,
   `getFeaturedProjects()`, `getPosts()`, `getPostBySlug()`, `getPostYears()`, `getLatestPosts()`,
-  plus `yearRange()` and the per-page constants.
+  plus `yearRange()` and the per-page constants. `getProjects()` and `getFeaturedProjects()` read
+  their curation global, then load that page's ids with `where: { id: { in } }` and reorder the
+  result in JS — SQL has no order of its own for an `in` list, and Payload cannot sort by "the
+  order an editor dragged these into". `curatedProjectIds()` and `curatedPageMeta()` are exported
+  and unit tested so that arithmetic does not need a database.
 - `src/lib/pagination.ts` — `parsePositiveInt()`, `parseYearParam()`, `buildQueryUrl()`,
   `pageWindow()`. **Always** parse query params through these; they reject junk, zero, negative,
   fractional and repeated values.

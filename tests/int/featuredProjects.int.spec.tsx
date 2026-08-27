@@ -7,12 +7,12 @@ import { navItems } from '@/lib/navigation'
 import { makeProject } from '../helpers/fixtures'
 
 const featured = [
-  makeProject({ title: 'Alpha', slug: 'alpha', highlight: true }),
-  makeProject({ title: 'Beta', slug: 'beta', highlight: true }),
+  makeProject({ title: 'Alpha', slug: 'alpha' }),
+  makeProject({ title: 'Beta', slug: 'beta' }),
 ]
 
 describe('<FeaturedProjects />', () => {
-  it('renders the highlighted projects with links to their detail pages', () => {
+  it('renders the curated projects with links to their detail pages', () => {
     render(<FeaturedProjects projects={featured} totalProjects={2} />)
 
     expect(screen.getByRole('heading', { level: 2, name: 'Projects' })).toBeInTheDocument()
@@ -41,11 +41,36 @@ describe('<FeaturedProjects />', () => {
     expect(screen.queryByRole('link', { name: /view all projects/i })).not.toBeInTheDocument()
   })
 
-  it('still links to the full list when nothing is highlighted but projects exist', () => {
-    render(<FeaturedProjects projects={[]} totalProjects={4} />)
+  it('renders the projects in the order given, without re-sorting them', () => {
+    const curated = [
+      makeProject({ title: 'Gamma', slug: 'gamma' }),
+      makeProject({ title: 'Alpha', slug: 'alpha' }),
+      makeProject({ title: 'Beta', slug: 'beta' }),
+    ]
 
-    expect(screen.getByText('No projects have been highlighted yet.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /view all projects/i })).toBeInTheDocument()
+    render(<FeaturedProjects projects={curated} totalProjects={3} />)
+
+    const titles = screen
+      .getAllByRole('article')
+      .map((card) => card.querySelector('h2')?.textContent)
+    expect(titles).toEqual(['Gamma', 'Alpha', 'Beta'])
+  })
+
+  it('renders as many projects as it is given, with no cap', () => {
+    const many = Array.from({ length: 9 }, (_, index) =>
+      makeProject({ title: `Project ${index}`, slug: `project-${index}` }),
+    )
+
+    render(<FeaturedProjects projects={many} totalProjects={9} />)
+
+    expect(screen.getAllByRole('article')).toHaveLength(9)
+  })
+
+  it('renders nothing when the curation is empty, even if the projects page lists some', () => {
+    const { container } = render(<FeaturedProjects projects={[]} totalProjects={4} />)
+
+    // An empty curation hides the section outright, link included.
+    expect(container).toBeEmptyDOMElement()
   })
 
   it('renders nothing when there are no projects at all', () => {

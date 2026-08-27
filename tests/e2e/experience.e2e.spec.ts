@@ -27,20 +27,38 @@ test.describe('Work experience and main menu', () => {
 
     const [current, previous] = workExperienceFixture
 
-    await expect(section.getByRole('heading', { level: 3, name: current.jobTitle })).toBeVisible()
-    await expect(section.getByRole('link', { name: current.company })).toHaveAttribute(
+    // Assertions are scoped to the seeded entries by company, because this runs against the
+    // developer's own database and the timeline also holds their real roles.
+    const entryFor = (company: string) => section.getByRole('listitem').filter({ hasText: company })
+
+    const currentEntry = entryFor(current.company)
+    await expect(
+      currentEntry.getByRole('heading', { level: 3, name: current.jobTitle }),
+    ).toBeVisible()
+    await expect(currentEntry.getByRole('link', { name: current.company })).toHaveAttribute(
       'href',
       current.companyUrl!,
     )
-    await expect(section.getByText(`${current.startYear} — Present`)).toBeVisible()
-    await expect(section.getByText('Leading the platform team and its architecture.')).toBeVisible()
+    await expect(currentEntry.getByText(`${current.startYear} — Present`)).toBeVisible()
+    await expect(
+      currentEntry.getByText('Leading the platform team and its architecture.'),
+    ).toBeVisible()
 
-    await expect(section.getByRole('heading', { level: 3, name: previous.jobTitle })).toBeVisible()
-    await expect(section.getByText(`${previous.startYear} — ${previous.endYear}`)).toBeVisible()
+    const previousEntry = entryFor(previous.company)
+    await expect(
+      previousEntry.getByRole('heading', { level: 3, name: previous.jobTitle }),
+    ).toBeVisible()
+    await expect(
+      previousEntry.getByText(`${previous.startYear} — ${previous.endYear}`),
+    ).toBeVisible()
 
-    // Newest first.
-    const titles = await section.getByRole('heading', { level: 3 }).allTextContents()
-    expect(titles).toEqual([current.jobTitle, previous.jobTitle])
+    // Newest first: the 2022-to-present role sorts above the one that ended in 2022.
+    const entries = await section.getByRole('listitem').allTextContents()
+    const currentIndex = entries.findIndex((text) => text.includes(current.company))
+    const previousIndex = entries.findIndex((text) => text.includes(previous.company))
+
+    expect(currentIndex).toBeGreaterThanOrEqual(0)
+    expect(currentIndex).toBeLessThan(previousIndex)
   })
 
   test('the fixed menu stays visible and scrolls to each section', async ({ page }) => {

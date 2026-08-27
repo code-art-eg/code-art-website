@@ -28,7 +28,7 @@ src/
 ├── app/
 │   ├── (frontend)/              Public website
 │   │   ├── layout.tsx           Fixed nav + footer, global styles
-│   │   ├── page.tsx             Home: bio → experience → featured projects → latest posts
+│   │   ├── page.tsx             Home: bio → experience → curated projects → latest posts
 │   │   ├── styles.css           Tailwind entrypoint (CSS-first config)
 │   │   ├── projects/
 │   │   │   ├── page.tsx         Project grid with pagination
@@ -54,10 +54,15 @@ tests/
 
 **Globals**
 
-| Global | Slug     | Purpose                                            |
-| ------ | -------- | -------------------------------------------------- |
-| Bio    | `bio`    | Name, subtitle, tagline and a rich text "About me" |
-| Footer | `footer` | Copyright line and social profile links            |
+| Global                | Slug                    | Purpose                                                      |
+| --------------------- | ----------------------- | ------------------------------------------------------------ |
+| Bio                   | `bio`                   | Name, subtitle, tagline and a rich text "About me"           |
+| Footer                | `footer`                | Copyright line and social profile links                      |
+| Home Page Projects    | `home-page-projects`    | Which projects the home page shows, in the order they appear |
+| Project Page Projects | `project-page-projects` | Which projects `/projects` lists, in the order they appear   |
+
+Both project globals are curations: only what they list is shown, in the order it is listed, and
+an empty list means that page shows no projects at all.
 
 **Collections**
 
@@ -67,7 +72,7 @@ tests/
 | Media           | `media`           | Uploaded images, stored in `/media`                                   |
 | Work Experience | `work-experience` | Roles in the home page timeline (empty end year renders as "Present") |
 | Skills          | `skills`          | Technology tags, created inline from the Projects form                |
-| Projects        | `projects`        | Portfolio projects with skills, images and a highlight flag           |
+| Projects        | `projects`        | Portfolio projects with skills and images                             |
 | Blog            | `blog`            | Markdown posts with a publication date                                |
 
 ## Setup

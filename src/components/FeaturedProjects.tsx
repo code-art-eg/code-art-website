@@ -6,17 +6,19 @@ import type { Project } from '@/payload-types'
 import { ProjectGrid } from './ProjectGrid'
 
 export type FeaturedProjectsProps = {
+  /** The curated projects, already in the order the editor arranged them. */
   projects: Project[]
-  /** Total number of projects, used to decide whether to link to the full list. */
+  /** How many projects `/projects` lists, used to decide whether to link to it. */
   totalProjects: number
 }
 
 /**
- * Home page "Projects" section: the highlighted projects, plus a link to the full
- * list whenever there are more projects than the ones shown here.
+ * Home page "Projects" section: the projects the Home Page Projects global curates, plus a
+ * link to `/projects` whenever that page lists more than the ones shown here. Curating
+ * nothing hides the section outright, rather than showing an empty heading.
  */
 export const FeaturedProjects: React.FC<FeaturedProjectsProps> = ({ projects, totalProjects }) => {
-  if (totalProjects === 0) return null
+  if (projects.length === 0) return null
 
   const hasMore = totalProjects > projects.length
 
@@ -44,7 +46,7 @@ export const FeaturedProjects: React.FC<FeaturedProjectsProps> = ({ projects, to
         )}
       </div>
 
-      <ProjectGrid projects={projects} emptyMessage="No projects have been highlighted yet." />
+      <ProjectGrid projects={projects} />
     </section>
   )
 }

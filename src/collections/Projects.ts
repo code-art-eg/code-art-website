@@ -106,7 +106,8 @@ export const Projects: CollectionConfig = {
       type: 'checkbox',
       defaultValue: false,
       admin: {
-        description: 'Highlighted projects are featured on the home page.',
+        description:
+          'Marks a project as a highlight. The home page list itself is curated in the Home Page Projects global.',
         position: 'sidebar',
       },
     },

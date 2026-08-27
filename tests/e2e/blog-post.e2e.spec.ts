@@ -22,13 +22,14 @@ test.describe('Blog post page', () => {
     await expect(page.getByText(postFixture.summary)).toBeVisible()
     await expect(page.getByText(postFixture.formattedDate)).toBeVisible()
 
-    // Markdown was converted to real elements, not printed as source.
+    // Markdown was converted to real elements, not printed as source. The link lookup is
+    // scoped to the article and exact: the footer's "LinkedIn" icon is also a link whose
+    // accessible name contains "link".
     await expect(page.getByRole('heading', { level: 1, name: 'Getting started' })).toBeVisible()
     await expect(page.locator('article strong', { hasText: 'bold' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'link' })).toHaveAttribute(
-      'href',
-      'https://example.com',
-    )
+    await expect(
+      page.locator('article').getByRole('link', { name: 'link', exact: true }),
+    ).toHaveAttribute('href', 'https://example.com')
     await expect(page.locator('article li')).toHaveCount(2)
     await expect(page.getByText('# Getting started')).toHaveCount(0)
   })

@@ -7,8 +7,10 @@ import type {
   Blog,
   Config,
   Footer,
+  HomePageProject,
   Media,
   Project,
+  ProjectPageProject,
   Skill,
   WorkExperience,
 } from '../../src/payload-types.js'
@@ -242,6 +244,27 @@ export const seedManyProjects = async (
   }
   return created
 }
+
+/**
+ * Points the home page "Projects" section at exactly these projects, in this order.
+ * The developer's own curation is snapshotted and put back by `restoreHomePageProjects`.
+ */
+export const seedHomePageProjects = async (projects: Project[]): Promise<HomePageProject> =>
+  seedGlobal<HomePageProject>('home-page-projects', {
+    projects: projects.map((project) => project.id),
+  })
+
+export const restoreHomePageProjects = async (): Promise<void> =>
+  restoreGlobal('home-page-projects')
+
+/** The same, for the list on `/projects`. */
+export const seedProjectPageProjects = async (projects: Project[]): Promise<ProjectPageProject> =>
+  seedGlobal<ProjectPageProject>('project-page-projects', {
+    projects: projects.map((project) => project.id),
+  })
+
+export const restoreProjectPageProjects = async (): Promise<void> =>
+  restoreGlobal('project-page-projects')
 
 export const postFixture = {
   title: 'E2E Testing With Playwright',

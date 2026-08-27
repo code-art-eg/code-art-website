@@ -13,6 +13,8 @@ import { Skills } from './collections/Skills'
 import { WorkExperience } from './collections/WorkExperience'
 import { Bio } from './globals/Bio'
 import { Footer } from './globals/Footer'
+import { HomePageProjects } from './globals/HomePageProjects'
+import { ProjectPageProjects } from './globals/ProjectPageProjects'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -25,7 +27,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, WorkExperience, Skills, Projects, Blog],
-  globals: [Bio, Footer],
+  globals: [Bio, Footer, HomePageProjects, ProjectPageProjects],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

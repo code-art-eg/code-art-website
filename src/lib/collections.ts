@@ -3,6 +3,7 @@ import type { PaginatedDocs } from 'payload'
 import type { Blog, Project, WorkExperience } from '@/payload-types'
 
 import { postYear } from './date'
+import { getHomePageProjects, getProjectPageProjects } from './globals'
 import { getPayloadClient } from './payload'
 
 /**
@@ -42,7 +43,73 @@ export const getProjectBySlug = async (slug: string): Promise<Project | null> =>
 export const PROJECTS_PER_PAGE = 9
 
 /**
- * Paginated projects, newest first, with skills and images populated.
+ * The ordered project ids a curation global holds. Relationship values come back as bare
+ * ids at `depth: 0`, but tolerate populated docs so the caller cannot get this wrong.
+ */
+export const curatedProjectIds = (selection: (number | Project)[] | null | undefined): number[] =>
+  (selection ?? []).map((entry) => (typeof entry === 'object' ? entry.id : entry))
+
+/**
+ * Loads projects by id and hands them back in the order the ids were given, since
+ * `where: { id: { in } }` has no order of its own. Ids with no matching document are
+ * dropped rather than rendered as a hole.
+ */
+const findProjectsInOrder = async (ids: number[]): Promise<Project[]> => {
+  if (ids.length === 0) return []
+
+  const payload = await getPayloadClient()
+  const { docs } = await payload.find({
+    collection: 'projects',
+    where: { id: { in: ids } },
+    limit: ids.length,
+    depth: 1,
+  })
+
+  const byId = new Map(docs.map((doc) => [doc.id, doc]))
+  return ids.map((id) => byId.get(id)).filter((doc): doc is Project => doc !== undefined)
+}
+
+/**
+ * The `PaginatedDocs` bookkeeping for a list of `totalDocs` items, matching what
+ * `payload.find` would report. Split out from the query so the arithmetic can be tested
+ * without a database.
+ */
+export const curatedPageMeta = (
+  totalDocs: number,
+  page: number,
+  limit: number,
+): Omit<PaginatedDocs<Project>, 'docs'> => {
+  const totalPages = Math.ceil(totalDocs / limit)
+
+  return {
+    hasNextPage: page < totalPages,
+    hasPrevPage: page > 1,
+    limit,
+    nextPage: page < totalPages ? page + 1 : null,
+    page,
+    pagingCounter: (page - 1) * limit + 1,
+    prevPage: page > 1 ? page - 1 : null,
+    totalDocs,
+    totalPages,
+  }
+}
+
+/**
+ * Paginates a curated id list in memory. Payload cannot sort by "the order an editor
+ * dragged these into", so the slicing happens here and only the current page is fetched.
+ */
+const curatedProjectPage = async (
+  ids: number[],
+  page: number,
+  limit: number,
+): Promise<PaginatedDocs<Project>> => ({
+  docs: await findProjectsInOrder(ids.slice((page - 1) * limit, page * limit)),
+  ...curatedPageMeta(ids.length, page, limit),
+})
+
+/**
+ * The projects listed on `/projects`, paginated. The `project-page-projects` global picks
+ * them and fixes their order, so an empty global lists nothing at all.
  */
 export const getProjects = async ({
   page = 1,
@@ -51,40 +118,26 @@ export const getProjects = async ({
   page?: number
   limit?: number
 } = {}): Promise<PaginatedDocs<Project>> => {
-  const payload = await getPayloadClient()
-  return payload.find({
-    collection: 'projects',
-    sort: '-createdAt',
-    page,
-    limit,
-    depth: 1,
-  })
+  const ids = curatedProjectIds((await getProjectPageProjects())?.projects)
+  return curatedProjectPage(ids, page, limit)
 }
 
-export const FEATURED_PROJECTS_LIMIT = 5
-
 /**
- * The highlighted projects shown on the home page, plus the total number of projects
- * so the caller can decide whether to offer a "View all projects" link.
+ * The projects shown on the home page, picked and ordered by the `home-page-projects`
+ * global, plus how many projects `/projects` lists so the caller can decide whether a
+ * "View all projects" link would lead anywhere new.
  */
-export const getFeaturedProjects = async (
-  limit = FEATURED_PROJECTS_LIMIT,
-): Promise<{ projects: Project[]; totalProjects: number }> => {
+export const getFeaturedProjects = async (): Promise<{
+  projects: Project[]
+  totalProjects: number
+}> => {
   try {
-    const payload = await getPayloadClient()
+    const [home, projectPage] = await Promise.all([getHomePageProjects(), getProjectPageProjects()])
 
-    const [highlighted, all] = await Promise.all([
-      payload.find({
-        collection: 'projects',
-        where: { highlight: { equals: true } },
-        sort: '-createdAt',
-        limit,
-        depth: 1,
-      }),
-      payload.count({ collection: 'projects' }),
-    ])
-
-    return { projects: highlighted.docs, totalProjects: all.totalDocs }
+    return {
+      projects: await findProjectsInOrder(curatedProjectIds(home?.projects)),
+      totalProjects: curatedProjectIds(projectPage?.projects).length,
+    }
   } catch {
     return { projects: [], totalProjects: 0 }
   }

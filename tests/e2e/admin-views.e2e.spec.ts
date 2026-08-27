@@ -22,6 +22,8 @@ const collections = [
 const globals = [
   { slug: 'bio', title: 'Bio', fields: ['title', 'subtitle', 'aboutMe'] },
   { slug: 'footer', title: 'Footer', fields: ['copyright', 'socialLinks'] },
+  { slug: 'home-page-projects', title: 'Home Page Projects', fields: ['projects'] },
+  { slug: 'project-page-projects', title: 'Project Page Projects', fields: ['projects'] },
 ]
 
 /** Next's dev overlay and HMR chatter are noisy; only genuine failures should fail a test. */

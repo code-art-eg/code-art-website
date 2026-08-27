@@ -98,10 +98,14 @@ export interface Config {
   globals: {
     bio: Bio;
     footer: Footer;
+    'home-page-projects': HomePageProject;
+    'project-page-projects': ProjectPageProject;
   };
   globalsSelect: {
     bio: BioSelect<false> | BioSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'home-page-projects': HomePageProjectsSelect<false> | HomePageProjectsSelect<true>;
+    'project-page-projects': ProjectPageProjectsSelect<false> | ProjectPageProjectsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -277,7 +281,7 @@ export interface Project {
    */
   images?: (number | Media)[] | null;
   /**
-   * Highlighted projects are featured on the home page.
+   * Marks a project as a highlight. The home page list itself is curated in the Home Page Projects global.
    */
   highlight?: boolean | null;
   updatedAt: string;
@@ -596,6 +600,36 @@ export interface Footer {
   createdAt?: string | null;
 }
 /**
+ * Projects featured in the home page "Projects" section. Only these are shown, in this order; leave it empty to hide the section.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-page-projects".
+ */
+export interface HomePageProject {
+  id: number;
+  /**
+   * Pick the projects to feature, then drag them into the order you want.
+   */
+  projects?: (number | Project)[] | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Projects listed on the /projects page. Only these are shown, in this order; leave it empty to list nothing.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-page-projects".
+ */
+export interface ProjectPageProject {
+  id: number;
+  /**
+   * Pick the projects to list, then drag them into the order you want.
+   */
+  projects?: (number | Project)[] | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "bio_select".
  */
@@ -621,6 +655,26 @@ export interface FooterSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-page-projects_select".
+ */
+export interface HomePageProjectsSelect<T extends boolean = true> {
+  projects?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-page-projects_select".
+ */
+export interface ProjectPageProjectsSelect<T extends boolean = true> {
+  projects?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

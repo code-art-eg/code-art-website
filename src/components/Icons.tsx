@@ -34,3 +34,11 @@ export const ChevronRightIcon: React.FC<IconProps> = ({ className }) => (
     <path d="m9 18 6-6-6-6" />
   </svg>
 )
+
+/** Cross — dismisses the zoomed image overlay. */
+export const CloseIcon: React.FC<IconProps> = ({ className }) => (
+  <svg {...base} className={className}>
+    <path d="M18 6 6 18" />
+    <path d="m6 6 12 12" />
+  </svg>
+)

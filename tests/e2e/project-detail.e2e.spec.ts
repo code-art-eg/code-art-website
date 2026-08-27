@@ -62,6 +62,19 @@ test.describe('Project detail page', () => {
     await expect(page.getByAltText('Second screenshot')).toBeVisible()
   })
 
+  test('zooms the carousel image and closes it again', async ({ page }) => {
+    await page.goto(projectUrl)
+
+    await page.getByRole('button', { name: 'Enlarge image: First screenshot' }).click()
+
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByAltText('First screenshot')).toBeVisible()
+
+    await dialog.getByRole('button', { name: 'Close image' }).click()
+    await expect(dialog).toBeHidden()
+  })
+
   test('returns 404 for an unknown slug', async ({ page }) => {
     const response = await page.goto('http://localhost:3000/projects/does-not-exist')
 

@@ -121,6 +121,19 @@ describe('<ProjectDetail />', () => {
       )
     })
 
+    it('zooms the current image into a closable overlay', async () => {
+      render(<ProjectDetail project={makeProject({ images })} />)
+
+      await userEvent.click(screen.getByRole('button', { name: 'Next image' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Enlarge image: Settings screen' }))
+
+      const dialog = screen.getByRole('dialog')
+      expect(within(dialog).getByAltText('Settings screen')).toBeInTheDocument()
+
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Close image' }))
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
     it('announces the current position for screen readers', async () => {
       render(<ProjectDetail project={makeProject({ images })} />)
 

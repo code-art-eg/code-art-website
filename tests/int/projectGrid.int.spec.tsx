@@ -1,5 +1,6 @@
 import React from 'react'
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { ProjectGrid } from '@/components/ProjectGrid'
@@ -59,6 +60,18 @@ describe('<ProjectGrid />', () => {
     render(<ProjectGrid projects={[makeProject({ images: [makeMedia({ alt: 'Cover shot' })] })]} />)
 
     expect(screen.getByAltText('Cover shot')).toHaveClass('object-contain')
+  })
+
+  it('zooms the thumbnail into a closable overlay', async () => {
+    render(<ProjectGrid projects={[makeProject({ images: [makeMedia({ alt: 'Cover shot' })] })]} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Enlarge image: Cover shot' }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByAltText('Cover shot')).toBeInTheDocument()
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Close image' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('falls back to a placeholder when the project has no images', () => {

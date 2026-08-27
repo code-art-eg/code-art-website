@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useCallback, useState } from 'react'
-import Image from 'next/image'
 
 import type { Media } from '@/payload-types'
 
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons'
+import { ZoomableImage } from './ZoomableImage'
 
 export type ProjectGalleryProps = {
   images: Media[]
@@ -15,6 +15,7 @@ export type ProjectGalleryProps = {
 /**
  * Image carousel with previous/next controls and dot indicators.
  * Renders a single static image (no controls) when there is only one.
+ * Clicking the current image opens it full screen.
  */
 export const ProjectGallery: React.FC<ProjectGalleryProps> = ({ images, title }) => {
   const [index, setIndex] = useState(0)
@@ -30,13 +31,11 @@ export const ProjectGallery: React.FC<ProjectGalleryProps> = ({ images, title })
     <section aria-roledescription="carousel" aria-label={`${title} images`} className="mt-8">
       <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900">
         {current.url && (
-          <Image
+          <ZoomableImage
             key={current.id}
             src={current.url}
             alt={current.alt || title}
-            fill
             sizes="(max-width: 768px) 100vw, 768px"
-            className="object-contain"
             priority={index === 0}
           />
         )}

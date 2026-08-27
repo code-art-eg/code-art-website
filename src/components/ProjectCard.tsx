@@ -1,5 +1,4 @@
 import React from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 
 import type { Project } from '@/payload-types'
@@ -8,6 +7,7 @@ import { firstImage } from '@/lib/media'
 import { ExternalLinkIcon } from './Icons'
 import { SkillBadges } from './SkillBadges'
 import { SocialIcon } from './SocialIcon'
+import { ZoomableImage } from './ZoomableImage'
 
 export type ProjectCardProps = {
   project: Project
@@ -31,12 +31,10 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     <article className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
       <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-950">
         {image?.url ? (
-          <Image
+          <ZoomableImage
             src={image.url}
             alt={image.alt || project.title}
-            fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-contain"
           />
         ) : (
           <Placeholder title={project.title} />

@@ -53,3 +53,5 @@ code-art-website.db
 # SQLite WAL sidecar files
 code-art-website.db-shm
 code-art-website.db-wal
+wrangler.jsonc
+.wrangler

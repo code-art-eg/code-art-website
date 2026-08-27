@@ -101,7 +101,7 @@ PAYLOAD_SECRET=<a long random string>
 ```
 
 Generate a secret with `openssl rand -hex 32`. The SQLite file is created automatically on
- the first run — there is no separate database server to install.
+the first run — there is no separate database server to install.
 
 ## Running the project
 
@@ -142,8 +142,23 @@ Static hosts ignore the query string, so the paginated and filtered list pages b
 paths — `/blog?year=2026&page=2` is written to `out/blog/year/2026/page/2/index.html`, and the
 links in the exported HTML point there. `out/404.html` holds the not-found page.
 
-`STATIC_PORT` (default `4321`) changes the port the crawl runs against, and `STATIC_OUT_DIR`
-the output directory.
+### Publishing
+
+The same command publishes what it built. The repository the site is served from — `../code-art-static`
+by default — has everything except its `.git` directory replaced with the new `out/`, and the
+difference is committed and pushed. A build identical to what is already published leaves no
+commit behind, and the clear refuses to run anywhere that is not the root of a repository of
+its own.
+
+```bash
+bun run build:static               # build, publish and push
+bun run build:static --no-push     # build and commit, review before pushing
+bun run build:static --no-publish  # build out/ and stop
+```
+
+`STATIC_PORT` (default `4321`) changes the port the crawl runs against, `STATIC_OUT_DIR` the
+output directory, and `STATIC_PUBLISH_DIR` the repository published into — set it empty to
+build without publishing.
 
 ## Testing
 

@@ -99,6 +99,14 @@ same reason the crawler rewrites query-string URLs into paths (`/blog?page=2` ->
 unit tested in `tests/int/staticSite.int.spec.ts`. **A new query param on a list page needs a
 place in `PARAM_ORDER` there**, or two URLs that differ only by it collide in one file.
 
+The build then publishes itself through `scripts/publish.ts`: the repository at
+`STATIC_PUBLISH_DIR` (default `../code-art-static`) has its contents replaced with `out/` and
+the difference committed and pushed. It is a clear-then-copy, not a merge, so a page that stops
+existing stops being served — which is why the clear spares `.git` and refuses to run anywhere
+that is not a repository root. `--no-push` commits without pushing, `--no-publish` builds only.
+`out/.nojekyll` is written because GitHub Pages' Jekyll pass would otherwise drop `_next/`,
+taking every stylesheet and script with it.
+
 ### The data-fetching rule
 
 **Pages fetch; components render.** Route files are async server components that call a helper

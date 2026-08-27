@@ -7,14 +7,17 @@
  * assets and uploaded media those pages reference.
  *
  * The output holds only HTML, CSS, JavaScript and media files — no database, no admin
- * panel, no API routes and no server code.
+ * panel, no API routes and no server code. It is then published: the repository the site is
+ * served from has its contents replaced with the build and the difference committed.
  *
- * Usage: `bun run build:static` (env: STATIC_PORT, STATIC_OUT_DIR).
+ * Usage: `bun run build:static [--no-publish] [--no-push]`
+ * (env: STATIC_PORT, STATIC_OUT_DIR, STATIC_PUBLISH_DIR).
  */
 import { spawn } from 'node:child_process'
 import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
+import { type BuildSummary, publish, publishOptions } from './publish'
 import {
   extractAssetPaths,
   extractLinks,
@@ -41,6 +44,13 @@ const SEED_PATHS = ['/', '/projects', '/blog']
 
 /** Requested purely to capture the 404 document; nothing should ever answer it. */
 const NOT_FOUND_PROBE = '/__static-build-not-found__'
+
+/**
+ * Written so GitHub Pages serves the output as-is. Its Jekyll pass drops directories whose
+ * name starts with an underscore, which would silently take `_next/` — every stylesheet and
+ * script the site has — out of the deploy.
+ */
+const NO_JEKYLL = '.nojekyll'
 
 const CHILD_ENV = {
   ...process.env,
@@ -206,6 +216,9 @@ const directorySize = async (directory: string): Promise<number> => {
 }
 
 const main = async (): Promise<void> => {
+  const options = publishOptions(process.argv.slice(2), process.env)
+  let summary: BuildSummary = { pages: 0, assets: 0, media: 0 }
+
   console.log(`> building into ${DIST_DIR}`)
   await rm(path.join(ROOT, DIST_DIR), { recursive: true, force: true })
   await run('bunx', ['next', 'build'])
@@ -255,15 +268,20 @@ const main = async (): Promise<void> => {
     }
 
     const mediaFiles = await copyMedia(documents)
+    await writeOutputFile(NO_JEKYLL, '')
     const bytes = await directorySize(path.join(ROOT, OUT_DIR))
 
+    summary = { pages: pages.size + 1, assets: assets.length, media: mediaFiles }
+
     console.log(
-      `\n${OUT_DIR}/: ${pages.size + 1} pages, ${assets.length} assets, ${mediaFiles} media files, ` +
+      `\n${OUT_DIR}/: ${summary.pages} pages, ${summary.assets} assets, ${summary.media} media files, ` +
         `${(bytes / 1024 / 1024).toFixed(1)} MB`,
     )
   } finally {
     stopServer()
   }
+
+  await publish(path.join(ROOT, OUT_DIR), options, summary)
 }
 
 await main()

@@ -18,3 +18,10 @@ export const navItems: NavItem[] = [
  */
 export const navHref = (id: string, pathname: string): string =>
   pathname === '/' ? `#${id}` : `/#${id}`
+
+/**
+ * The menu as it should render for the current content: the Blog item only earns its
+ * place once at least one post exists, since its home page section is hidden until then.
+ */
+export const visibleNavItems = ({ hasBlogPosts }: { hasBlogPosts: boolean }): NavItem[] =>
+  hasBlogPosts ? navItems : navItems.filter((item) => item.id !== 'blog')

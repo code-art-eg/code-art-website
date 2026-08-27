@@ -226,3 +226,17 @@ export const getLatestPosts = async (limit = 5): Promise<Blog[]> => {
     return []
   }
 }
+
+/**
+ * Whether the blog has any post at all. The home page hides its blog section and the
+ * matching main-menu item until the first post is written.
+ */
+export const hasBlogPosts = async (): Promise<boolean> => {
+  try {
+    const payload = await getPayloadClient()
+    const { totalDocs } = await payload.count({ collection: 'blog' })
+    return totalDocs > 0
+  } catch {
+    return false
+  }
+}

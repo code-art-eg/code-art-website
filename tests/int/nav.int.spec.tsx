@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Nav } from '@/components/Nav'
-import { navHref } from '@/lib/navigation'
+import { navHref, navItems, visibleNavItems } from '@/lib/navigation'
 
 const mockPathname = vi.hoisted(() => ({ value: '/' }))
 
@@ -64,6 +64,24 @@ describe('navHref', () => {
   })
 })
 
+describe('visibleNavItems', () => {
+  it('keeps the whole menu once the blog has a post', () => {
+    expect(visibleNavItems({ hasBlogPosts: true })).toEqual(navItems)
+  })
+
+  it('drops the Blog item while the blog is empty', () => {
+    const ids = visibleNavItems({ hasBlogPosts: false }).map((item) => item.id)
+
+    expect(ids).toEqual(['about', 'experience', 'projects'])
+  })
+
+  it('leaves the shared navItems list untouched', () => {
+    visibleNavItems({ hasBlogPosts: false })
+
+    expect(navItems.map((item) => item.id)).toContain('blog')
+  })
+})
+
 describe('<Nav />', () => {
   it('renders the About and Experience links inside a labelled nav', () => {
     render(<Nav />)
@@ -71,6 +89,13 @@ describe('<Nav />', () => {
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'About' })).toHaveAttribute('href', '#about')
     expect(screen.getByRole('link', { name: 'Experience' })).toHaveAttribute('href', '#experience')
+  })
+
+  it('omits the Blog link when given a menu without it', () => {
+    render(<Nav items={visibleNavItems({ hasBlogPosts: false })} />)
+
+    expect(screen.queryByRole('link', { name: 'Blog' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Projects' })).toBeInTheDocument()
   })
 
   it('links back to the home page anchors from another route', () => {

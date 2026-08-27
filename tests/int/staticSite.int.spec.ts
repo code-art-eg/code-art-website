@@ -1,3 +1,5 @@
+// noinspection HtmlUnknownTarget,HtmlUnknownAnchorTarget
+
 import { describe, expect, it } from 'vitest'
 import { readFile } from 'node:fs/promises'
 
@@ -147,7 +149,7 @@ describe('extractAssetPaths', () => {
 
 describe('extractMediaFiles', () => {
   it('returns the upload names behind the media route', () => {
-    expect(extractMediaFiles('<img src="/api/media/file/shot.png" />')).toEqual(['shot.png'])
+    expect(extractMediaFiles('<img src="/api/media/file/shot.png" alt="shot" />')).toEqual(['shot.png'])
   })
 
   it('decodes escaped names and deduplicates', () => {

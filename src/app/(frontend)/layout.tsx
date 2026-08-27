@@ -7,6 +7,7 @@ import { getFooter } from '@/lib/globals'
 import { visibleNavItems } from '@/lib/navigation'
 
 import './styles.css'
+import { Metadata } from 'next'
 
 /**
  * The whole frontend reads live content from Payload, so it must render per request
@@ -14,8 +15,8 @@ import './styles.css'
  */
 export const dynamic = 'force-dynamic'
 
-export const metadata = {
-  description: 'Personal website, portfolio and blog of a software engineer.',
+export const metadata: Metadata = {
+  description: 'Personal website, portfolio, and blog of a software engineer.',
   title: 'Personal Website',
 }
 

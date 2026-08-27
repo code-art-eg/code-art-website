@@ -1,7 +1,7 @@
 import { getPayload } from 'payload'
 import type { Payload } from 'payload'
 
-import config from '../../src/payload.config.js'
+import config from '@/payload.config.js'
 import type {
   Bio,
   Blog,
@@ -13,7 +13,7 @@ import type {
   ProjectPageProject,
   Skill,
   WorkExperience,
-} from '../../src/payload-types.js'
+} from '@/payload-types'
 import { lexicalParagraphs } from './lexical'
 
 type GlobalSlug = keyof Config['globals']

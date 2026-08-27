@@ -1,6 +1,6 @@
 # Personal Website
 
-A personal website, portfolio and blog for a software engineer, built as a single Next.js
+A personal website, portfolio, and blog for a software engineer, built as a single Next.js
 application with Payload CMS providing the admin panel and content API.
 
 The public site renders live content from the CMS: a bio, a work-experience timeline, portfolio
@@ -62,7 +62,7 @@ tests/
 | Project Page Projects | `project-page-projects` | Which projects `/projects` lists, in the order they appear   |
 
 Both project globals are curations: only what they list is shown, in the order it is listed, and
-an empty list means that page shows no projects at all.
+an empty list means that the page shows no projects at all.
 
 **Collections**
 
@@ -101,7 +101,7 @@ PAYLOAD_SECRET=<a long random string>
 ```
 
 Generate a secret with `openssl rand -hex 32`. The SQLite file is created automatically on
-first run — there is no separate database server to install.
+ the first run — there is no separate database server to install.
 
 ## Running the project
 
@@ -132,8 +132,8 @@ Writes a self-contained static copy of the site to `out/`: HTML, CSS, JavaScript
 uploaded images only — no database, no admin panel and no API routes. Nothing in the output
 needs a server, so it can be dropped onto any static host.
 
-There is nothing for Next to export directly, because every page reads live content from
-Payload. Instead the script builds the app into a throwaway `.next-static` directory, starts it,
+There is nothing for Next to export directly because every page reads live content from
+Payload. Instead, the script builds the app into a throwaway `.next-static` directory, starts it,
 crawls every page the site links to and saves the HTML it gets back, along with the assets and
 uploads those pages reference. Whatever the CMS holds at that moment is baked in, so re-run it
 after editing content.
@@ -159,7 +159,7 @@ rendered with React Testing Library. Components are presentational and take plai
 database is needed to test them.
 
 **End-to-end tests** (`tests/e2e/`) start a dev server automatically and drive Chromium. They
-seed content through the Payload Local API before each suite and clean it up afterwards —
+seed content through the Payload Local API before each suite and clean it up afterward —
 globals are snapshotted and restored, and seeded rows use `test-` prefixed slugs that are
 deleted in `afterAll`, so your own content is left intact.
 
@@ -204,12 +204,12 @@ bun run build             # Also type-checks src/ and tests/
 
 Frontend styling is Tailwind utility classes only. Tailwind v4 is configured CSS-first in
 `src/app/(frontend)/styles.css` — there is no `tailwind.config.js`. Every surface supports light
-and dark colour schemes.
+and dark color schemes.
 
 ## Notes for contributors
 
-Project-specific architecture notes, conventions and gotchas live in
+Project-specific architecture notes, conventions, and gotchas live in
 [`.claude/skills/code-art-website/SKILL.md`](.claude/skills/code-art-website/SKILL.md), with a
-general Payload reference in [`.claude/skills/payload/`](.claude/skills/payload/).
+general Payload reference in [`.claude/skills/payload/SKILL.md`](.claude/skills/payload/SKILL.md).
 
 `CLAUDE.md` contains a block that `next dev` regenerates automatically; commit it as-is.

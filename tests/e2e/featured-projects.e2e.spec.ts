@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import type { Project } from '../../src/payload-types.js'
+import type { Project } from '@/payload-types'
 import {
   cleanupProjects,
   restoreBio,
